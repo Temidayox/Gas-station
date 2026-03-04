@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./gasstation.db"
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String
+  phone         String?
+  password      String
+  role          String        // ADMIN | OUTLET_STAFF | CUSTOMER
+  outletId      Int?
+  outlet        Outlet?       @relation(fields: [outletId], references: [id])
+  cylinders     Cylinder[]
+  tankRefills   TankRefill[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Outlet {
+  id              Int           @id @default(autoincrement())
+  name            String
+  location        String
+  dailyTarget     Float         @default(500000)
+  isActive        Boolean       @default(true)
+  tankCapacityKg  Float         @default(2000)   // max tank size in kg
+  tankCurrentKg   Float         @default(1000)   // current gas level in kg
+  staff           User[]
+  transactions    Transaction[]
+  tankRefills     TankRefill[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model TankRefill {
+  id          String    @id @default(cuid())
+  outletId    Int
+  outlet      Outlet    @relation(fields: [outletId], references: [id])
+  addedKg     Float
+  beforeKg    Float
+  afterKg     Float
+  staffId     String
+  staff       User      @relation(fields: [staffId], references: [id])
+  note        String?
+  createdAt   DateTime  @default(now())
+}
+
+model Cylinder {
+  id            String        @id
+  size          Float
+  ownerId       String?
+  owner         User?         @relation(fields: [ownerId], references: [id])
+  isLinked      Boolean       @default(false)
+  transactions  Transaction[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Transaction {
+  id            String        @id @default(cuid())
+  outletId      Int
+  outlet        Outlet        @relation(fields: [outletId], references: [id])
+  cylinderId    String?
+  cylinder      Cylinder?     @relation(fields: [cylinderId], references: [id])
+  naira         Float
+  kg            Float
+  cylinderSize  Float
+  paymentMethod String        // CASH | TRANSFER | POS_TERMINAL
+  staffId       String?
+  isAnonymous   Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+}
+
+model PriceRate {
+  id            Int           @id @default(autoincrement())
+  pricePerKg    Float
+  setBy         String
+  createdAt     DateTime      @default(now())
+}
+
+model Alert {
+  id            Int           @id @default(autoincrement())
+  type          String
+  message       String
+  outletId      Int?
+  severity      String        @default("warning")
+  isResolved    Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+}

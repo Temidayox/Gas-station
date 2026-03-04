@@ -1,0 +1,26 @@
+.wrap { min-height:100vh;background:var(--surf);display:flex;align-items:center;justify-content:center;padding:40px; }
+.card { max-width:460px;width:100%;background:var(--wh);border-radius:14px;border:1px solid var(--bdr);box-shadow:0 8px 40px rgba(15,92,46,.12);padding:36px; }
+.logoRow { display:flex;align-items:center;gap:10px;margin-bottom:24px; }
+.logoIcon { background:var(--am);border-radius:10px;padding:8px;display:flex; }
+.brand { font-family:var(--fd),sans-serif;font-size:16px;font-weight:800;color:var(--g); }
+.progress { display:flex;gap:7px;margin-bottom:26px; }
+.progStep { flex:1;height:4px;border-radius:2px;background:var(--bdr);transition:background .3s; }
+.progActive { background:var(--g); }
+.stepTitle { font-family:var(--fd),sans-serif;font-size:20px;font-weight:800;margin-bottom:5px; }
+.stepSub { color:var(--inks);font-size:13px;margin-bottom:20px;line-height:1.6; }
+.err { background:var(--rp);border:1px solid #fcc;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--rd);margin-bottom:14px; }
+.fields { display:flex;flex-direction:column;gap:14px; }
+.field { display:flex;flex-direction:column;gap:5px; }
+.field label { font-size:11px;font-weight:600;color:var(--inks);text-transform:uppercase;letter-spacing:.06em; }
+.field input { padding:11px 13px;border:1.5px solid var(--bdr);border-radius:8px;font-family:var(--fb),sans-serif;font-size:14px;background:var(--wh);color:var(--ink);outline:none;transition:border-color .15s; }
+.field input:focus { border-color:var(--gl); }
+.nextBtn { width:100%;padding:13px;background:var(--g);color:white;border:none;border-radius:8px;font-family:var(--fb),sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s; }
+.nextBtn:hover { background:var(--gm); }
+.nextBtn:disabled { opacity:.45;cursor:not-allowed; }
+.skipBtn { background:none;border:none;color:var(--inks);font-size:12px;cursor:pointer;text-decoration:underline;text-align:center; }
+.stickerNote { background:var(--al);border:1px solid var(--am);border-radius:10px;padding:14px;margin-bottom:18px;font-size:12px;color:#7a4f00;line-height:1.6; }
+.mono { font-family:var(--fl),sans-serif; }
+.successWrap { text-align:center;padding:10px 0; }
+.successIcon { width:64px;height:64px;border-radius:50%;background:var(--gp);display:flex;align-items:center;justify-content:center;margin:0 auto 14px; }
+.backLink { display:block;text-align:center;margin-top:16px;color:var(--inks);font-size:12px;text-decoration:none; }
+.backLink:hover { color:var(--g); }

@@ -1,0 +1,6 @@
+.wrap { display: flex; min-height: 100vh; }
+.main { margin-left: 240px; flex: 1; min-height: 100vh; background: var(--surf); overflow-y: auto; }
+
+@media (max-width: 768px) {
+  .main { margin-left: 0; padding-top: 60px; }
+}

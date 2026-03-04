@@ -1,0 +1,99 @@
+/* Loading */
+.loadingWrap{display:flex;align-items:center;justify-content:center;min-height:80vh;}
+.loadingCard{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--inks);font-size:13px;}
+
+/* Ticker */
+.ticker{background:var(--gd);display:flex;align-items:center;height:38px;overflow:hidden;}
+.tickerBadge{padding:0 14px;background:var(--am);color:var(--gd);font-family:var(--fl),sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;height:100%;display:flex;align-items:center;flex-shrink:0;}
+.tickerTrack{flex:1;overflow:hidden;height:100%;display:flex;align-items:center;}
+.tickerInner{display:flex;animation:ticker 60s linear infinite;width:max-content;}
+.tickItem{color:rgba(255,255,255,.7);font-size:11.5px;font-family:var(--fl),sans-serif;padding:0 22px;white-space:nowrap;}
+.tickOutlet{color:var(--am);font-weight:700;}
+.tickAmt{color:#fff;font-family:var(--fn),sans-serif;font-weight:700;}
+.tickSep{color:rgba(255,255,255,.25);margin:0 6px;}
+
+/* Page */
+.wrap{padding:28px;max-width:1400px;}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;}
+.title{font-family:var(--fd),sans-serif;font-size:26px;font-weight:800;margin-bottom:5px;}
+.headerMeta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--inks);}
+.metaDot{color:var(--bdr);}
+.headerRight{display:flex;align-items:center;gap:12px;}
+.liveChip{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--gl);text-transform:uppercase;letter-spacing:.08em;}
+.ratePill{background:var(--wh);border:1.5px solid var(--bdr);border-radius:var(--r);padding:10px 18px;box-shadow:var(--sh-sm);}
+.rateLabel{display:block;font-size:9px;font-weight:700;color:var(--inks);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;}
+.rateVal{font-family:var(--fn),sans-serif;font-size:20px;font-weight:800;color:var(--g);}
+.rateUnit{font-size:12px;font-weight:400;color:var(--inks);}
+
+/* KPI */
+.kpiGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+.kpiCard{background:var(--wh);border-radius:var(--r-md);border:1px solid var(--bdr);box-shadow:var(--sh);display:flex;overflow:hidden;position:relative;}
+.kpiBar{width:4px;flex-shrink:0;}
+.kpiContent{flex:1;padding:18px 18px 16px;}
+.kpiTop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.kpiLabel{font-size:11px;font-weight:700;color:var(--inks);text-transform:uppercase;letter-spacing:.07em;}
+.kpiIcon{padding:7px;border-radius:8px;display:flex;flex-shrink:0;}
+.kpiVal{font-family:var(--fn),sans-serif;font-size:28px;font-weight:800;color:var(--ink);line-height:1;margin-bottom:6px;letter-spacing:-.02em;}
+.kpiFooter{display:flex;align-items:center;justify-content:space-between;}
+.kpiSub{font-size:11px;color:var(--inks);}
+.kpiTrend{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;}
+.trendUp{color:var(--g);background:var(--gp);}
+.trendDown{color:var(--rd);background:var(--rp);}
+
+/* Section title */
+.sectionTitle{font-family:var(--fd),sans-serif;font-size:14px;font-weight:700;color:var(--inks);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;margin-top:4px;}
+
+/* Outlet grid */
+.outletGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+.outletCard{background:var(--wh);border-radius:var(--r-md);border:1px solid var(--bdr);box-shadow:var(--sh);padding:18px;}
+.outletHeader{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.outletName{font-weight:700;font-size:14px;margin-bottom:2px;}
+.outletLoc{font-size:11px;color:var(--inks);}
+.outletRev{font-family:var(--fn),sans-serif;font-size:24px;font-weight:800;color:var(--g);letter-spacing:-.02em;margin-bottom:3px;}
+.outletMeta{font-size:11px;color:var(--inks);margin-bottom:12px;font-family:var(--fl),sans-serif;}
+.prog{background:var(--gp);border-radius:4px;height:6px;overflow:hidden;margin-bottom:5px;}
+.progFill{height:100%;border-radius:4px;transition:width .8s ease;}
+.outletTarget{font-size:10px;color:var(--inkx);margin-bottom:10px;}
+.pctBadge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;font-family:var(--fn),sans-serif;}
+.pctGreen{background:var(--gp);color:var(--g);}
+.pctAmber{background:var(--al);color:var(--amd);}
+.pctRed{background:var(--rp);color:var(--rd);}
+
+/* Mini chart */
+.miniChart{display:flex;align-items:flex-end;gap:3px;height:44px;margin-top:4px;}
+.miniChartCol{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.miniBar{width:100%;border-radius:3px 3px 0 0;transition:height .5s ease;}
+.miniDay{font-size:8px;color:var(--inkx);font-family:var(--fl),sans-serif;}
+
+/* Feed card */
+.card{background:var(--wh);border-radius:var(--r-md);border:1px solid var(--bdr);box-shadow:var(--sh);padding:22px;}
+.cardHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.cardTitle{font-family:var(--fd),sans-serif;font-weight:700;font-size:16px;}
+.cardMeta{display:flex;align-items:center;gap:10px;}
+.countChip{font-size:11px;color:var(--inks);background:var(--surf);border:1px solid var(--bdr);padding:2px 10px;border-radius:20px;font-weight:600;}
+.tableWrap{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+.tbl th{padding:8px 12px;text-align:left;font-size:10px;color:var(--inks);text-transform:uppercase;letter-spacing:.08em;font-weight:700;border-bottom:2px solid var(--bdr);white-space:nowrap;}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--bdr);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.alt td{background:var(--surfd);}
+.flashRow td{animation:flash 1.5s ease;}
+.mono{font-family:var(--fl),sans-serif;font-weight:500;}
+.dim{color:var(--inks)!important;}
+.bold{font-weight:700;}
+.money{font-family:var(--fn),sans-serif;font-weight:800;color:var(--g);letter-spacing:-.01em;}
+.cylId{font-family:var(--fl),sans-serif;color:var(--g);font-weight:700;font-size:12px;}
+.anon{color:var(--inkx);font-size:12px;font-style:italic;}
+.emptyCell{text-align:center;padding:36px!important;color:var(--inks);font-style:italic;}
+
+/* Missing color variables for blue */
+.blp{background:#e8f0fe;}
+.bl{color:#1a73e8;}
+
+/* Tank level in outlet cards */
+.tankRow{display:flex;align-items:center;gap:7px;margin-top:8px;margin-bottom:2px;}
+.tankRowLabel{font-size:10px;font-weight:700;color:var(--inks);white-space:nowrap;width:42px;flex-shrink:0;}
+.tankRowBar{flex:1;background:var(--gp);border-radius:3px;height:7px;overflow:hidden;}
+.tankRowPct{font-size:10px;font-family:var(--fn),sans-serif;font-weight:700;width:28px;text-align:right;color:var(--inks);flex-shrink:0;}
+.tankRowRed{color:var(--rd)!important;}
+.tankRowAmber{color:var(--amd)!important;}
