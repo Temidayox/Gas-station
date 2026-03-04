@@ -14,8 +14,7 @@
 
 1. **Set Environment Variables** on Vercel:
    ```bash
-   GOOGLE_CLIENT_ID="277521470084-9broi2jaio1s6gnmcjeaill2g9ac2o4n.apps.googleusercontent.com"
-   GOOGLE_CLIENT_SECRET="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"
+   
    NEXTAUTH_SECRET="generate-new-32-char-secret"
    NEXTAUTH_URL="https://gas-station-self.vercel.app"
    
