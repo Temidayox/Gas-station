@@ -14,8 +14,8 @@ export default function LoginPage() {
     })
     
     if (result?.ok) {
-      router.push('/')
-      router.refresh()
+      // Force a full page reload to let middleware handle redirect
+      window.location.href = '/'
     }
   }
 
@@ -57,37 +57,6 @@ export default function LoginPage() {
             <GoogleIcon />
             Continue with Google
           </button>
-        </div>
-
-        <div className={styles.divider}><hr/><span>Access Information</span><hr/></div>
-
-        <div className={styles.accessInfo}>
-          <div className={styles.accessCard}>
-            <div className={styles.accessIcon}>👑</div>
-            <div className={styles.accessContent}>
-              <div className={styles.accessTitle}>Admin</div>
-              <div className={styles.accessEmail}>dtemidayo825@gmail.com</div>
-              <div className={styles.accessDesc}>Full system access</div>
-            </div>
-          </div>
-          
-          <div className={styles.accessCard}>
-            <div className={styles.accessIcon}>⛽</div>
-            <div className={styles.accessContent}>
-              <div className={styles.accessTitle}>Outlet Staff</div>
-              <div className={styles.accessEmail}>Added by admin</div>
-              <div className={styles.accessDesc}>POS & outlet dashboard</div>
-            </div>
-          </div>
-          
-          <div className={styles.accessCard}>
-            <div className={styles.accessIcon}>👥</div>
-            <div className={styles.accessContent}>
-              <div className={styles.accessTitle}>Customers</div>
-              <div className={styles.accessEmail}>Any Gmail account</div>
-              <div className={styles.accessDesc}>Track your cylinders</div>
-            </div>
-          </div>
         </div>
 
         <p className={styles.registerLink}>

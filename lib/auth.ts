@@ -24,12 +24,19 @@ export const authOptions: NextAuthOptions = {
       })
       
       if (!dbUser) {
-        // Auto-register new users as CUSTOMER
+        // Auto-register new users with role based on email
+        let userRole = 'CUSTOMER'
+        
+        // Hardcode admin for specific email
+        if (user.email.toLowerCase() === 'dtemidayo825@gmail.com') {
+          userRole = 'ADMIN'
+        }
+        
         await prisma.user.create({
           data: {
             email: user.email.toLowerCase(),
             name: user.name || 'User',
-            role: 'CUSTOMER',
+            role: userRole,
             googleId: account?.providerAccountId,
             avatarUrl: user.image,
             // No password needed for OAuth
@@ -85,6 +92,11 @@ export const authOptions: NextAuthOptions = {
         ;(session.user as any).outletId = token.outletId ? Number(token.outletId) : null
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      // If user is admin, redirect to dashboard
+      // This will be checked after successful sign-in
+      return baseUrl
     },
   },
 }
