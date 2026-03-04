@@ -2,6 +2,37 @@
 
 :root {
   --g:    #0f5c2e;
+  --gm:   #1a7a3f;
+  --gl:   #22a04f;
+  --gp:   rgba(34,160,80,0.08);
+  --amd:  #c98700;
+  --am:   #f5a800;
+  --al:   rgba(245,168,0,0.12);
+  --rd:   #d93025;
+  --rp:   rgba(217,48,37,0.08);
+  --bl:   #1a73e8;
+  --ink:  #0d1f12;
+  --inks: #5a6c5d;
+  --inkx: #8da39c;
+  --wh:   #ffffff;
+  --surf: #f8faf9;
+  --bdr:  #e1e4e1;
+  --sh:   0 1px 3px rgba(0,0,0,0.08);
+  --sh-md: 0 4px 12px rgba(0,0,0,0.12);
+  --sh-lg: 0 8px 24px rgba(0,0,0,0.16);
+  --r:    12px;
+  --r-sm: 8px;
+  --r-md: 16px;
+  --fd:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --fn:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --fb:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --fl:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --gpp:  #0f5c2e;
+  --gd:   #0a3d1a;
+  --gll:  #4caf50;
+  --surfd: #f1f3f2;
+  --bdrm:  #d0d3d0;
+  --inkm: #1a231e;
 }
 
 html, body { height: 100%; }
