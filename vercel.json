@@ -3,12 +3,8 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["fra1"],
-  "env": {
-    "NEXTAUTH_URL": "https://gasstation-dnhocq30w-notations-projects.vercel.app"
-  },
   "build": {
     "env": {
-      "NEXTAUTH_URL": "https://gasstation-dnhocq30w-notations-projects.vercel.app",
       "SKIP_TYPE_CHECK": "1"
     }
   },
