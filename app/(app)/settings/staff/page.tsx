@@ -32,7 +32,7 @@ export default function StaffPage() {
       const sessionData = await getSession()
       setSession(sessionData)
 
-      if (sessionData?.user?.role === 'ADMIN') {
+      if ((sessionData?.user as any)?.role === 'ADMIN') {
         const [staffRes, outletsRes] = await Promise.all([
           fetch('/api/admin/staff'),
           fetch('/api/outlets')
