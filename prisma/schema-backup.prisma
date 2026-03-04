@@ -1,3 +1,7 @@
+// BACKUP OF ORIGINAL PRISMA SCHEMA
+// Created before implementing Google OAuth
+// Date: 2026-03-04
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,9 +17,7 @@ model User {
   email         String        @unique
   name          String
   phone         String?
-  password      String?       // Made optional for OAuth users
-  googleId      String?       @unique // Google OAuth ID
-  avatarUrl     String?       // Google profile picture
+  password      String
   role          String
   outletId      Int?
   outlet        Outlet?       @relation(fields: [outletId], references: [id])

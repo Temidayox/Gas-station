@@ -72,32 +72,34 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const tx = await prisma.transaction.create({
-    data: {
-      outletId,
-      naira: parseFloat(naira),
-      kg,
-      cylinderSize: parseFloat(String(cylinderSize)),
-      paymentMethod,
-      cylinderId: cleanCylId,
-      staffId: user.id,
-      isAnonymous: !cleanCylId,
-    },
-    include: {
-      outlet: { select: { name: true } },
-      cylinder: { select: { owner: { select: { name: true } } } },
-    },
-  })
-
-  // Deduct dispensed gas from outlet tank (non-blocking)
-  try {
-    await prisma.outlet.update({
-      where: { id: outletId },
+  // Create transaction and update tank atomically to prevent race conditions
+  const [tx] = await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        outletId,
+        naira: parseFloat(naira),
+        kg,
+        cylinderSize: parseFloat(String(cylinderSize)),
+        paymentMethod,
+        cylinderId: cleanCylId,
+        staffId: user.id,
+        isAnonymous: !cleanCylId,
+      },
+      include: {
+        outlet: { select: { name: true } },
+        cylinder: { select: { owner: { select: { name: true } } } },
+      },
+    }),
+    // Update tank level atomically
+    prisma.outlet.update({
+      where: { 
+        id: outletId,
+        // Ensure tank has enough gas
+        tankCurrentKg: { gte: kg }
+      },
       data: { tankCurrentKg: { decrement: kg } },
-    })
-  } catch (e) {
-    console.error('Tank deduction failed:', e)
-  }
+    }),
+  ])
 
   try {
     const pusher = getPusherServer()

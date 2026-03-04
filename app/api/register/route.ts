@@ -23,15 +23,20 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // Link cylinder if provided
+  // Link cylinder if provided - use transaction to prevent race conditions
   if (cylinderId) {
-    const cyl = await prisma.cylinder.findUnique({ where: { id: cylinderId.toUpperCase().replace(/-/g, '') } })
-    if (cyl && !cyl.isLinked) { // normalised ID already
-      await prisma.cylinder.update({
-        where: { id: cylinderId.toUpperCase() },
-        data:  { ownerId: user.id, isLinked: true },
-      })
-    }
+    const normalisedId = cylinderId.toUpperCase().replace(/-/g, '')
+    
+    await prisma.$transaction(async (tx) => {
+      const cyl = await tx.cylinder.findUnique({ where: { id: normalisedId } })
+      if (cyl && !cyl.isLinked && !cyl.ownerId) {
+        // Only link if cylinder is truly unlinked
+        await tx.cylinder.update({
+          where: { id: normalisedId },
+          data: { ownerId: user.id, isLinked: true },
+        })
+      }
+    })
   }
 
   return NextResponse.json({ success: true, email: user.email }, { status: 201 })

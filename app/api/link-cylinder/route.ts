@@ -18,9 +18,25 @@ export async function POST(req: NextRequest) {
   if (cyl.ownerId === user.id)
     return NextResponse.json({ error: 'This cylinder is already linked to your account' }, { status: 409 })
 
-  await prisma.cylinder.update({
-    where: { id },
-    data: { ownerId: user.id, isLinked: true },
+  // Use transaction to prevent race conditions
+  await prisma.$transaction(async (tx) => {
+    // Re-check cylinder status within transaction
+    const currentCyl = await tx.cylinder.findUnique({ where: { id } })
+    if (!currentCyl) {
+      throw new Error('Cylinder ID not found — check sticker')
+    }
+    if (currentCyl.isLinked && currentCyl.ownerId !== user.id) {
+      throw new Error('This cylinder is already linked to another account')
+    }
+    if (currentCyl.ownerId === user.id) {
+      throw new Error('This cylinder is already linked to your account')
+    }
+
+    // Update cylinder ownership atomically
+    await tx.cylinder.update({
+      where: { id },
+      data: { ownerId: user.id, isLinked: true },
+    })
   })
 
   return NextResponse.json({ success: true, cylinderId: id, size: cyl.size })

@@ -1,56 +1,88 @@
 import { NextAuthOptions } from 'next-auth'
 import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
+import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from '@/lib/prisma'
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: 'jwt', maxAge: 8 * 60 * 60 },
+  session: { strategy: 'jwt', maxAge: 2 * 60 * 60 }, // Reduced to 2 hours for security
   pages:   { signIn: '/login' },
   secret:  process.env.NEXTAUTH_SECRET,
   providers: [
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email:    { label: 'Email',    type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase().trim() },
-        })
-        if (!user) return null
-        const valid = await bcrypt.compare(credentials.password, user.password)
-        if (!valid) return null
-        return {
-          id:       user.id,
-          email:    user.email,
-          name:     user.name,
-          role:     user.role,
-          outletId: user.outletId,   // keep as number or null — no coercion here
-        } as any
-      },
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        // Store everything explicitly on first sign-in
-        token.userId   = (user as any).id        // use userId to avoid collision with token.sub
-        token.role     = (user as any).role
-        token.outletId = (user as any).outletId  // number | null
-        token.name     = user.name
+    async signIn({ user, account }) {
+      if (!user.email) return false
+      
+      // Check if user exists in database
+      const dbUser = await prisma.user.findUnique({
+        where: { email: user.email.toLowerCase() },
+      })
+      
+      if (!dbUser) {
+        // Auto-register new users as CUSTOMER
+        await prisma.user.create({
+          data: {
+            email: user.email.toLowerCase(),
+            name: user.name || 'User',
+            role: 'CUSTOMER',
+            googleId: account?.providerAccountId,
+            avatarUrl: user.image,
+            // No password needed for OAuth
+          },
+        })
+        return true
+      }
+      
+      // Check if user is blocked or suspended
+      if (dbUser.role === 'SUSPENDED') return false
+      
+      // Update Google ID and avatar if missing
+      if (account?.providerAccountId && !dbUser.googleId) {
+        await prisma.user.update({
+          where: { id: dbUser.id },
+          data: { 
+            googleId: account.providerAccountId,
+            avatarUrl: user.image,
+          },
+        })
+      }
+      
+      return true
+    },
+    async jwt({ token, user, account }) {
+      if (user && account) {
+        // First time sign in
+        token.userId = user.id
+        token.email = user.email
+        token.name = user.name
+        token.picture = user.image
+        
+        // Get user role from database
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+          select: { id: true, role: true, outletId: true },
+        })
+        
+        if (dbUser) {
+          token.role = dbUser.role
+          token.outletId = dbUser.outletId
+        }
       }
       return token
     },
     async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).id       = token.userId  as string
-        ;(session.user as any).role    = token.role    as string
-        ;(session.user as any).outletId = token.outletId != null ? Number(token.outletId) : null
-        session.user.name              = token.name    as string
+      if (session.user && token) {
+        session.user.id = token.userId as string
+        session.user.email = token.email as string
+        session.user.name = token.name as string
+        session.user.image = token.picture as string
+        ;(session.user as any).role = token.role as string
+        ;(session.user as any).outletId = token.outletId ? Number(token.outletId) : null
       }
       return session
     },
