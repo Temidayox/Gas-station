@@ -48,6 +48,163 @@
 .outletCard{background:var(--wh);border-radius:var(--r-md);border:1px solid var(--bdr);box-shadow:var(--sh);padding:18px;}
 .outletHeader{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
 .outletName{font-weight:700;font-size:14px;margin-bottom:2px;}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .wrap {
+    padding: 16px !important;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .title {
+    font-size: 20px !important;
+    text-align: center;
+  }
+  
+  .headerMeta {
+    justify-content: center;
+  }
+  
+  .headerRight {
+    justify-content: center;
+  }
+  
+  .ratePill {
+    padding: 12px 16px;
+    text-align: center;
+  }
+  
+  .kpiGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .kpiCard {
+    border-radius: var(--r) !important;
+  }
+  
+  .kpiContent {
+    padding: 14px !important;
+  }
+  
+  .kpiVal {
+    font-size: 20px !important;
+  }
+  
+  .kpiLabel {
+    font-size: 10px !important;
+  }
+  
+  .kpiSub {
+    font-size: 10px !important;
+  }
+  
+  .outletGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .outletCard {
+    padding: 14px !important;
+  }
+  
+  .outletName {
+    font-size: 13px !important;
+  }
+  
+  .sectionTitle {
+    font-size: 12px !important;
+    margin-bottom: 12px;
+  }
+  
+  /* Ticker mobile */
+  .ticker {
+    height: 32px;
+  }
+  
+  .tickItem {
+    font-size: 10px;
+    padding: 0 16px;
+  }
+  
+  .tickerBadge {
+    font-size: 9px;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpiGrid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .outletGrid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .kpiVal {
+    font-size: 24px !important;
+  }
+  
+  .rateVal {
+    font-size: 18px !important;
+  }
+  
+  .title {
+    font-size: 18px !important;
+  }
+  
+  .wrap {
+    padding: 12px !important;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .wrap {
+    padding: 12px !important;
+  }
+  
+  .header {
+    margin-bottom: 16px;
+  }
+  
+  .kpiGrid {
+    gap: 8px !important;
+  }
+  
+  .outletGrid {
+    gap: 8px !important;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .wrap {
+    padding: 20px !important;
+  }
+  
+  .kpiGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  
+  .outletGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  
+  .kpiVal {
+    font-size: 24px !important;
+  }
+  
+  .title {
+    font-size: 22px !important;
+  }
+}
 .outletLoc{font-size:11px;color:var(--inks);}
 .outletRev{font-family:var(--fn),sans-serif;font-size:24px;font-weight:800;color:var(--g);letter-spacing:-.02em;margin-bottom:3px;}
 .outletMeta{font-size:11px;color:var(--inks);margin-bottom:12px;font-family:var(--fl),sans-serif;}

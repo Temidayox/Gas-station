@@ -52,3 +52,154 @@
 .accessTitle{font-family:var(--fd),sans-serif;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:2px;}
 .accessEmail{font-size:12px;color:var(--g);font-family:var(--fl),sans-serif;font-weight:600;margin-bottom:2px;}
 .accessDesc{font-size:11px;color:var(--inks);}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .wrap {
+    flex-direction: column !important;
+    min-height: auto;
+  }
+  
+  .left {
+    padding: 40px 20px !important;
+    min-height: auto !important;
+    text-align: center;
+  }
+  
+  .right {
+    width: 100% !important;
+    padding: 32px 20px !important;
+    border-radius: 24px 24px 0 0;
+  }
+  
+  .logoRow {
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+  
+  .headline {
+    font-size: 32px !important;
+    line-height: 1.1 !important;
+    margin-bottom: 16px;
+  }
+  
+  .desc {
+    font-size: 14px;
+    max-width: 100%;
+  }
+  
+  .stats {
+    flex-direction: column;
+    gap: 20px !important;
+    align-items: center;
+  }
+  
+  .formTitle {
+    font-size: 22px !important;
+    text-align: center;
+  }
+  
+  .formSub {
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .googleBtn {
+    padding: 16px !important;
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+  
+  .registerLink {
+    font-size: 11px;
+    margin-top: 16px;
+  }
+  
+  /* Hide background elements on mobile for performance */
+  .ring, .glow {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .left {
+    padding: 32px 16px !important;
+  }
+  
+  .right {
+    padding: 24px 16px !important;
+  }
+  
+  .headline {
+    font-size: 28px !important;
+  }
+  
+  .brand {
+    font-size: 18px !important;
+  }
+  
+  .stats {
+    gap: 16px !important;
+  }
+  
+  .statVal {
+    font-size: 24px !important;
+  }
+  
+  .formTitle {
+    font-size: 20px !important;
+  }
+  
+  .googleBtn {
+    padding: 18px !important;
+    font-size: 16px;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .left {
+    padding: 20px !important;
+  }
+  
+  .headline {
+    font-size: 24px !important;
+  }
+  
+  .stats {
+    gap: 16px !important;
+  }
+  
+  .logoRow {
+    margin-bottom: 16px;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .wrap {
+    padding: 32px;
+  }
+  
+  .left {
+    padding: 60px 40px !important;
+  }
+  
+  .right {
+    padding: 40px 32px !important;
+    width: 420px !important;
+  }
+}
+
+/* Touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .googleBtn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .googleBtn:active {
+    transform: scale(0.98);
+  }
+}

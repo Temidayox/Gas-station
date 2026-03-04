@@ -18,10 +18,14 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       if (!user.email) return false
       
+      console.log('🔍 Sign in attempt:', { email: user.email, account: account?.providerAccountId })
+      
       // Check if user exists in database
       const dbUser = await prisma.user.findUnique({
         where: { email: user.email.toLowerCase() },
       })
+      
+      console.log('🔍 Existing user:', dbUser)
       
       if (!dbUser) {
         // Auto-register new users with role based on email
@@ -30,18 +34,27 @@ export const authOptions: NextAuthOptions = {
         // Hardcode admin for specific email
         if (user.email.toLowerCase() === 'dtemidayo825@gmail.com') {
           userRole = 'ADMIN'
+          console.log('👑 Creating admin account for:', user.email)
         }
         
-        await prisma.user.create({
-          data: {
-            email: user.email.toLowerCase(),
-            name: user.name || 'User',
-            role: userRole,
-            googleId: account?.providerAccountId,
-            avatarUrl: user.image,
-            // No password needed for OAuth
-          },
-        })
+        console.log('🔍 Creating user with role:', userRole)
+        
+        try {
+          await prisma.user.create({
+            data: {
+              email: user.email.toLowerCase(),
+              name: user.name || 'User',
+              role: userRole,
+              googleId: account?.providerAccountId,
+              avatarUrl: user.image,
+              // No password needed for OAuth
+            },
+          })
+          console.log('✅ User created successfully')
+        } catch (error) {
+          console.error('❌ Error creating user:', error)
+          return false
+        }
         return true
       }
       

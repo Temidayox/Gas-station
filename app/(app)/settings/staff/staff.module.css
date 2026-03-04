@@ -41,3 +41,169 @@
 /* Loading and Error States */
 .loading{display:flex;align-items:center;justify-content:center;min-height:400px;font-size:16px;color:var(--inks);}
 .unauthorized{display:flex;align-items:center;justify-content:center;min-height:400px;font-size:18px;color:var(--rd);text-align:center;padding:20px;}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .wrap {
+    padding: 16px !important;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .title {
+    font-size: 20px !important;
+    text-align: center;
+  }
+  
+  .addBtn {
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+  
+  .staffGrid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .staffCard {
+    padding: 16px !important;
+  }
+  
+  .staffHeader {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .staffActions {
+    flex-direction: row;
+    gap: 8px;
+  }
+  
+  .editBtn,
+  .deleteBtn {
+    flex: 1;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+    min-height: 44px;
+  }
+  
+  .modalContent {
+    margin: 16px !important;
+    padding: 24px !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: calc(100vh - 32px) !important;
+  }
+  
+  .modalTitle {
+    font-size: 18px !important;
+    margin-bottom: 20px;
+  }
+  
+  .field input,
+  .field select {
+    padding: 14px !important;
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+  
+  .formActions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .saveBtn,
+  .cancelBtn {
+    padding: 14px 20px !important;
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrap {
+    padding: 12px !important;
+  }
+  
+  .title {
+    font-size: 18px !important;
+  }
+  
+  .staffCard {
+    padding: 12px !important;
+  }
+  
+  .staffName {
+    font-size: 14px !important;
+  }
+  
+  .staffEmail {
+    font-size: 12px !important;
+  }
+  
+  .modalContent {
+    margin: 12px !important;
+    padding: 20px !important;
+  }
+  
+  .modalTitle {
+    font-size: 16px !important;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .wrap {
+    padding: 12px !important;
+  }
+  
+  .header {
+    margin-bottom: 16px;
+  }
+  
+  .modalContent {
+    margin: 12px !important;
+    max-height: calc(100vh - 24px) !important;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .wrap {
+    padding: 20px !important;
+  }
+  
+  .staffGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .addBtn:hover,
+  .editBtn:hover,
+  .deleteBtn:hover,
+  .saveBtn:hover,
+  .cancelBtn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .addBtn:active,
+  .editBtn:active,
+  .deleteBtn:active,
+  .saveBtn:active,
+  .cancelBtn:active {
+    transform: scale(0.98);
+  }
+  
+  .staffCard:hover {
+    transform: none;
+    box-shadow: var(--sh);
+  }
+}
