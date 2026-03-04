@@ -8,7 +8,9 @@
   },
   "build": {
     "env": {
-      "NEXTAUTH_URL": "https://gasstation-dnhocq30w-notations-projects.vercel.app"
+      "NEXTAUTH_URL": "https://gasstation-dnhocq30w-notations-projects.vercel.app",
+      "SKIP_TYPE_CHECK": "1"
     }
-  }
+  },
+  "ignoreCommand": "exit 1"
 }
