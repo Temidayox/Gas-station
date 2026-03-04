@@ -88,7 +88,6 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {/* Ticker */}
       {tickerItems.length > 0 && (
         <div className={styles.ticker}>
           <div className={styles.tickerBadge}>LIVE</div>
@@ -113,7 +112,6 @@ export default function DashboardPage() {
       )}
 
       <div className={styles.wrap}>
-        {/* Page header */}
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>Operations Dashboard</h1>
@@ -133,7 +131,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* KPIs */}
         <div className={`${styles.kpiGrid} stagger`}>
           <KpiCard label="Revenue Today" value={fmt(data.totalRev)} sub="All 4 outlets" trend={+8} color="green" icon="naira" />
           <KpiCard label="KG Dispensed" value={`${data.totalKg.toFixed(0)} kg`} sub={`${data.totalCount} transactions`} color="green" icon="cylinder" />
@@ -141,7 +138,6 @@ export default function DashboardPage() {
           <KpiCard label="Anonymous" value={`${data.anonPct}%`} sub="Untracked customers" color="amber" icon="alert" />
         </div>
 
-        {/* Outlet grid */}
         <div className={styles.sectionTitle}>Outlet Performance</div>
         <div className={`${styles.outletGrid} stagger`}>
           {data.outlets.map(o => (
@@ -178,7 +174,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Live feed */}
         <div className={styles.card}>
           <div className={styles.cardHead}>
             <span className={styles.cardTitle}>Live Transaction Feed</span>

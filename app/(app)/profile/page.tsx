@@ -8,7 +8,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState('')
 
-  // Link cylinder modal state
   const [linking, setLinking]       = useState(false)
   const [linkId, setLinkId]         = useState('')
   const [linkLoading, setLinkLoading] = useState(false)
@@ -39,7 +38,7 @@ export default function ProfilePage() {
       if (res.ok) {
         setLinkOk(`Cylinder ${d.cylinderId} (${d.size}kg) linked successfully!`)
         setLinkId('')
-        await fetchProfile() // refresh cylinder list
+        await fetchProfile()
         setTimeout(() => { setLinking(false); setLinkOk('') }, 2000)
       } else {
         setLinkErr(d.error ?? 'Link failed')
@@ -64,7 +63,6 @@ export default function ProfilePage() {
 
   return (
     <div className={styles.wrap}>
-      {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.heroLeft}>
           <div className={styles.avatar}>{initials}</div>
@@ -82,7 +80,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* KPIs */}
       <div className={`${styles.kpiRow} stagger`}>
         {[
           { label: 'Total Spent',      value: fmt(stats.totalSpend) },
@@ -98,7 +95,6 @@ export default function ProfilePage() {
       </div>
 
       <div className={styles.grid}>
-        {/* Monthly chart */}
         <div className={styles.card}>
           <div className={styles.cardTitle}>Monthly Spend</div>
           <div className={styles.chartOuter}>
@@ -115,7 +111,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Cylinders */}
         <div className={styles.card}>
           <div className={styles.cardTitle}>
             My Cylinders <span className={styles.cardCount}>{cylinders.length}</span>
@@ -139,7 +134,6 @@ export default function ProfilePage() {
               ))
           }
 
-          {/* Link another cylinder */}
           {!linking ? (
             <button className={styles.linkBtn} onClick={() => { setLinking(true); setLinkErr(''); setLinkOk('') }}>
               + Link Another Cylinder
@@ -171,7 +165,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Refill history */}
       <div className={styles.card}>
         <div className={styles.cardTitle}>
           Refill History <span className={styles.cardCount}>{transactions.length}</span>

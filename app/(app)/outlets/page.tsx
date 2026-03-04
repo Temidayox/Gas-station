@@ -1,281 +1,246 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { fmt, fmtKg } from '@/lib/utils'
-import styles from './outlets.module.css'
+import { getPusherClient } from '@/lib/pusher-client'
+import { CHANNELS, EVENTS } from '@/lib/pusher'
+import { fmt, fmtKg, fmtT, fmtD } from '@/lib/utils'
+import styles from './outlet-dash.module.css'
 
-export default function OutletsPage() {
-  const [outlets, setOutlets]     = useState<any[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [selected, setSelected]   = useState<any>(null)
-  const [showCreate, setShowCreate] = useState(false)
+export default function OutletDashPage() {
+  const [dash, setDash]         = useState<any>(null)
+  const [txs,  setTxs]          = useState<any[]>([])
+  const [error, setError]       = useState('')
+  const [tankCurrentKg, setTankCurrentKg] = useState(0)
+  const [tankCapacityKg, setTankCapacityKg] = useState(1)
 
-  // Create form
-  const [form, setForm] = useState({ name: '', location: '', dailyTarget: '400000', tankCapacityKg: '2000' })
-  const [creating, setCreating]   = useState(false)
-  const [createErr, setCreateErr] = useState('')
+  const [showRefill, setShowRefill]   = useState(false)
+  const [refillKg, setRefillKg]       = useState('')
+  const [refillNote, setRefillNote]   = useState('')
+  const [refillLoading, setRefillLoading] = useState(false)
+  const [refillErr, setRefillErr]     = useState('')
+  const [refillOk, setRefillOk]       = useState('')
 
-  const fetchOutlets = useCallback(async () => {
+  const fetchDash = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/outlets', { cache: 'no-store' })
-      const d = await res.json()
-      setOutlets(Array.isArray(d) ? d : [])
-      // Refresh selected outlet data if one is open
-      if (selected) {
-        const fresh = d.find((o: any) => o.id === selected.id)
-        if (fresh) setSelected(fresh)
-      }
-    } catch { setOutlets([]) }
-    finally { setLoading(false) }
-  }, [selected?.id])
+      const [dashRes, tankRes] = await Promise.all([
+        fetch('/api/outlet-dash', { cache: 'no-store' }),
+        fetch('/api/tank-refill', { cache: 'no-store' }),
+      ])
+      if (!dashRes.ok) { setError('Failed to load dashboard'); return }
+      const d = await dashRes.json()
+      const tank = tankRes.ok ? await tankRes.json() : null
+      setDash(d)
+      setTxs(Array.isArray(d.transactions) ? d.transactions : [])
+      if (tank) { setTankCurrentKg(tank.tankCurrentKg); setTankCapacityKg(tank.tankCapacityKg) }
+    } catch { setError('Network error') }
+  }, [])
 
-  useEffect(() => { fetchOutlets() }, [])
+  useEffect(() => {
+    fetchDash()
+    const pusher = getPusherClient()
+    if (!pusher) return
+    const ch = pusher.subscribe(CHANNELS.PUBLIC)
+    ch.bind(EVENTS.NEW_TRANSACTION, (tx: any) => {
+      setTxs(prev => [tx, ...prev.slice(0, 49)])
+      setDash((prev: any) => {
+        if (!prev) return prev
+        const newRev = prev.rev + tx.naira
+        return { ...prev, rev: newRev, kg: prev.kg + tx.kg, count: prev.count + 1, linked: tx.cylinderId ? prev.linked + 1 : prev.linked, pct: Math.min(100, Math.round((newRev / prev.dailyTarget) * 100)) }
+      })
+      setTankCurrentKg(prev => Math.max(0, parseFloat((prev - tx.kg).toFixed(2))))
+    })
+    return () => { try { ch.unbind_all(); pusher.unsubscribe(CHANNELS.PUBLIC) } catch {} }
+  }, [fetchDash])
 
-  async function createOutlet() {
-    if (!form.name.trim() || !form.location.trim()) { setCreateErr('Name and location are required'); return }
-    setCreating(true); setCreateErr('')
+  async function submitRefill() {
+    const kg = parseFloat(refillKg)
+    if (!kg || kg <= 0) { setRefillErr('Enter a valid amount'); return }
+    setRefillLoading(true); setRefillErr('')
     try {
-      const res = await fetch('/api/admin/outlets', {
+      const res = await fetch('/api/tank-refill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ addedKg: kg, note: refillNote }),
       })
       const d = await res.json()
       if (res.ok) {
-        setShowCreate(false)
-        setForm({ name: '', location: '', dailyTarget: '400000', tankCapacityKg: '2000' })
-        await fetchOutlets()
-      } else { setCreateErr(d.error ?? 'Failed to create outlet') }
-    } catch { setCreateErr('Network error') }
-    finally { setCreating(false) }
+        setTankCurrentKg(d.afterKg)
+        setTankCapacityKg(d.capacityKg)
+        setRefillOk(`Tank updated: ${d.beforeKg.toFixed(0)}kg → ${d.afterKg.toFixed(0)}kg`)
+        setRefillKg(''); setRefillNote('')
+        setTimeout(() => { setShowRefill(false); setRefillOk('') }, 2200)
+      } else { setRefillErr(d.error ?? 'Failed') }
+    } catch { setRefillErr('Network error') }
+    finally { setRefillLoading(false) }
   }
 
-  if (loading) return <div className={styles.loading}><div className="spinner" /></div>
+  if (error) return (
+    <div className={styles.loadingWrap}>
+      <div className={styles.errorMsg}>{error}</div>
+      <button className={styles.retryBtn} onClick={fetchDash}>Retry</button>
+    </div>
+  )
+  if (!dash) return <div className={styles.loadingWrap}><div className="spinner" /><span>Loading…</span></div>
 
-  // ── Detail panel ──────────────────────────────────────────────
-  if (selected) {
-    const o = selected
-    const tankPct = o.tankPct ?? 0
-    const tankLow = tankPct < 20
-    const tankWarn = tankPct < 40
+  const tankPct  = Math.min(100, Math.round((tankCurrentKg / tankCapacityKg) * 100))
+  const tankLow  = tankPct < 20
+  const tankWarn = tankPct < 40
 
-    return (
-      <div className={styles.wrap}>
-        <div className={styles.detailHeader}>
-          <button className={styles.backBtn} onClick={() => setSelected(null)}>← Back to Outlets</button>
-          <span className={styles.activeBadge}>{o.isActive ? 'Active' : 'Inactive'}</span>
-        </div>
+  const hours = Array.from({ length: 14 }, (_, i) => {
+    const h = i + 6
+    return txs.filter((t: any) => new Date(t.createdAt).getHours() === h).reduce((s: number, t: any) => s + t.naira, 0)
+  })
+  const maxH = Math.max(...hours, 1)
 
-        <div className={styles.detailTop}>
-          <div>
-            <h1 className={styles.detailTitle}>{o.name}</h1>
-            <div className={styles.detailLoc}>📍 {o.location}</div>
-          </div>
-          <button className={styles.refreshBtn} onClick={fetchOutlets}>↻ Refresh</button>
-        </div>
+  const payTotals = { CASH: 0, TRANSFER: 0, POS_TERMINAL: 0 }
+  txs.forEach((t: any) => { const k = t.paymentMethod as keyof typeof payTotals; if (k in payTotals) payTotals[k] += t.naira })
+  const payTotal = Math.max(Object.values(payTotals).reduce((s, v) => s + v, 0), 1)
 
-        {/* Today's KPIs */}
-        <div className={styles.kpiGrid}>
-          {[
-            ['Revenue Today',  fmt(o.rev),              `Target: ${fmt(o.dailyTarget)}`],
-            ['KG Dispensed',   `${(o.kg||0).toFixed(1)} kg`, 'Today'],
-            ['Transactions',   o.count,                 `${o.linked} linked`],
-            ['Target %',       `${o.pct}%`,             o.pct >= 100 ? '🎉 Hit!' : `${fmt(o.dailyTarget - o.rev)} to go`],
-          ].map(([l,v,s]) => (
-            <div key={String(l)} className={styles.kpi}>
-              <div className={styles.kpiLabel}>{l}</div>
-              <div className={styles.kpiVal}>{v}</div>
-              <div className={styles.kpiSub}>{s}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tank */}
-        <div className={`${styles.tankCard} ${tankLow ? styles.tankRed : tankWarn ? styles.tankAmber : ''}`}>
-          <div className={styles.tankLeft}>
-            <div className={styles.tankHeading}>
-              {tankLow ? '⚠ TANK CRITICALLY LOW' : tankWarn ? '⚠ Tank Low' : '⛽ Tank Level'}
-            </div>
-            <div className={styles.tankNums}>
-              <span className={styles.tankCur}>{(o.tankCurrentKg||0).toFixed(0)} kg</span>
-              <span className={styles.tankOf}>/ {(o.tankCapacityKg||0).toFixed(0)} kg</span>
-            </div>
-          </div>
-          <div className={styles.tankBarWrap}>
-            <div className={styles.tankTrack}>
-              <div className={styles.tankFill} style={{
-                width: `${tankPct}%`,
-                background: tankLow ? 'var(--rd)' : tankWarn ? 'var(--am)' : 'var(--gl)'
-              }} />
-            </div>
-            <span className={styles.tankPct}>{tankPct}%</span>
-          </div>
-        </div>
-
-        {/* Payment mix & week trend */}
-        <div className={styles.twoCol}>
-          <div className={styles.card}>
-            <div className={styles.cardTitle}>7-Day Revenue Trend</div>
-            <div className={styles.bars}>
-              {(o.weekData ?? []).map((v: number, i: number) => {
-                const max = Math.max(...(o.weekData ?? []), 1)
-                const day = new Date(Date.now() - (6-i)*86400000)
-                const lbl = day.toLocaleDateString('en-NG', { weekday: 'short' })
-                return (
-                  <div key={i} className={styles.barCol}>
-                    <div className={styles.barFill} style={{ height: v > 0 ? `${Math.max((v/max)*80,4)}px` : '4px', background: i===6?'var(--g)':'var(--gl)', opacity: 0.5+(i/6)*0.5 }} />
-                    <span className={styles.barLbl}>{lbl}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-          <div className={styles.card}>
-            <div className={styles.cardTitle}>Payment Mix (Today)</div>
-            {o.payTotals && ([['Cash','CASH','var(--g)'],['Transfer','TRANSFER','var(--am)'],['POS Card','POS_TERMINAL','#1a73e8']] as const).map(([lbl,key,col]) => {
-              const total = Object.values(o.payTotals).reduce((s: number, v: any) => s + v, 0) || 1
-              const val = o.payTotals[key] ?? 0
-              return (
-                <div key={key} className={styles.payRow}>
-                  <div className={styles.payTop}><span>{lbl}</span><span style={{color:col,fontWeight:700}}>{Math.round((val/total)*100)}%</span></div>
-                  <div className={styles.payTrack}><div style={{width:`${(val/total)*100}%`,background:col,height:'100%',borderRadius:3}} /></div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Staff */}
-        <div className={styles.card}>
-          <div className={styles.cardTitle}>Staff ({(o.staff??[]).length})</div>
-          {(o.staff??[]).length === 0
-            ? <div className={styles.empty}>No staff assigned yet.</div>
-            : <table className={styles.tbl}>
-                <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
-                <tbody>
-                  {(o.staff??[]).map((s: any, i: number) => (
-                    <tr key={s.id} className={i%2?styles.alt:''}>
-                      <td className={styles.bold}>{s.name}</td>
-                      <td className={styles.muted}>{s.email}</td>
-                      <td><span className={styles.roleBadge}>{s.role.replace('_',' ')}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-          }
-        </div>
-
-        {/* Recent tank refills */}
-        <div className={styles.card}>
-          <div className={styles.cardTitle}>Recent Tank Refills</div>
-          {(o.recentRefills??[]).length === 0
-            ? <div className={styles.empty}>No tank refills recorded.</div>
-            : <table className={styles.tbl}>
-                <thead><tr><th>Date</th><th>Added</th><th>Before</th><th>After</th><th>By</th></tr></thead>
-                <tbody>
-                  {(o.recentRefills??[]).map((r: any, i: number) => (
-                    <tr key={r.id} className={i%2?styles.alt:''}>
-                      <td className={styles.muted}>{new Date(r.createdAt).toLocaleDateString('en-NG')}</td>
-                      <td className={styles.bold} style={{color:'var(--g)'}}>+{r.addedKg.toFixed(0)} kg</td>
-                      <td className={styles.muted}>{r.beforeKg.toFixed(0)} kg</td>
-                      <td className={styles.muted}>{r.afterKg.toFixed(0)} kg</td>
-                      <td>{r.staff?.name ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-          }
-        </div>
-      </div>
-    )
-  }
-
-  // ── List view ─────────────────────────────────────────────────
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Outlet Management</h1>
-          <div className={styles.sub}>{outlets.length} outlets · click any outlet to see full details</div>
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>{dash.outletName}</h1>
+            <span className={styles.liveBadge}><span className="pulse-dot" /> Live</span>
+          </div>
+          <div className={styles.sub}>{fmtD(new Date())} · Rate: <strong>{fmt(dash.pricePerKg)}/kg</strong></div>
         </div>
-        <div style={{display:'flex',gap:10}}>
-          <button className={styles.refreshBtn} onClick={fetchOutlets}>↻ Refresh</button>
-          <button className={styles.createBtn} onClick={() => setShowCreate(true)}>+ New Outlet</button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button className={styles.refreshBtn} onClick={fetchDash}>↻</button>
+          <button className={`${styles.refillBtn} ${tankLow ? styles.refillBtnUrgent : ''}`} onClick={() => { setShowRefill(true); setRefillErr(''); setRefillOk('') }}>
+            ⛽ Tank Refill
+          </button>
         </div>
       </div>
 
-      {/* Create outlet modal */}
-      {showCreate && (
-        <div className={styles.createCard}>
-          <div className={styles.createHead}>
-            <span>Create New Outlet</span>
-            <button className={styles.closeBtn} onClick={() => { setShowCreate(false); setCreateErr('') }}>×</button>
+      <div className={`${styles.tankCard} ${tankLow ? styles.tankLow : tankWarn ? styles.tankWarn : ''}`}>
+        <div className={styles.tankLeft}>
+          <div className={styles.tankLabel}>
+            {tankLow ? '⚠ TANK CRITICALLY LOW' : tankWarn ? '⚠ Tank Level Low' : '⛽ Tank Level'}
           </div>
-          <div className={styles.createGrid}>
-            <div className={styles.createField}>
-              <label>Outlet Name *</label>
-              <input className={styles.createInp} placeholder="e.g. Victoria Island" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} />
+          <div className={styles.tankStats}>
+            <span className={styles.tankCurrent}>{tankCurrentKg.toFixed(0)} kg</span>
+            <span className={styles.tankOf}>of {tankCapacityKg.toFixed(0)} kg capacity</span>
+          </div>
+        </div>
+        <div className={styles.tankBarWrap}>
+          <div className={styles.tankBarTrack}>
+            <div className={styles.tankBarFill} style={{
+              width: `${tankPct}%`,
+              background: tankLow ? 'var(--rd)' : tankWarn ? 'var(--am)' : 'var(--gl)',
+            }} />
+            {[25, 50, 75].map(m => (
+              <div key={m} className={styles.tankMark} style={{ left: `${m}%` }} />
+            ))}
+          </div>
+          <div className={styles.tankPct}>{tankPct}%</div>
+        </div>
+      </div>
+
+      {showRefill && (
+        <div className={styles.refillModal}>
+          <div className={styles.refillModalHead}>
+            <span>⛽ Log Tank Refill</span>
+            <button className={styles.refillClose} onClick={() => setShowRefill(false)}>×</button>
+          </div>
+          <div className={styles.refillCurrent}>
+            Current: <strong>{tankCurrentKg.toFixed(0)} kg</strong> / {tankCapacityKg.toFixed(0)} kg
+          </div>
+          <div className={styles.refillFields}>
+            <div className={styles.refillField}>
+              <label>Gas Added (kg)</label>
+              <input className={styles.refillInp} type="number" min="1" max={tankCapacityKg - tankCurrentKg} placeholder={`Max ${(tankCapacityKg - tankCurrentKg).toFixed(0)} kg`} value={refillKg} onChange={e => { setRefillKg(e.target.value); setRefillErr('') }} autoFocus />
             </div>
-            <div className={styles.createField}>
-              <label>Location *</label>
-              <input className={styles.createInp} placeholder="e.g. Victoria Island, Lagos" value={form.location} onChange={e => setForm(f => ({...f, location: e.target.value}))} />
-            </div>
-            <div className={styles.createField}>
-              <label>Daily Target (₦)</label>
-              <input className={styles.createInp} type="number" value={form.dailyTarget} onChange={e => setForm(f => ({...f, dailyTarget: e.target.value}))} />
-            </div>
-            <div className={styles.createField}>
-              <label>Tank Capacity (kg)</label>
-              <input className={styles.createInp} type="number" value={form.tankCapacityKg} onChange={e => setForm(f => ({...f, tankCapacityKg: e.target.value}))} />
+            <div className={styles.refillField}>
+              <label>Note (optional)</label>
+              <input className={styles.refillInp} type="text" placeholder="e.g. NNPC delivery" value={refillNote} onChange={e => setRefillNote(e.target.value)} />
             </div>
           </div>
-          {createErr && <div className={styles.createErr}>{createErr}</div>}
-          <div className={styles.createBtns}>
-            <button className={styles.createSubmit} onClick={createOutlet} disabled={creating}>{creating ? 'Creating…' : 'Create Outlet'}</button>
-            <button className={styles.createCancel} onClick={() => { setShowCreate(false); setCreateErr('') }}>Cancel</button>
+          {refillKg && !isNaN(parseFloat(refillKg)) && (
+            <div className={styles.refillPreview}>
+              After refill: <strong>{Math.min(tankCurrentKg + parseFloat(refillKg), tankCapacityKg).toFixed(0)} kg</strong>
+              {' '}({Math.min(100, Math.round(((tankCurrentKg + parseFloat(refillKg)) / tankCapacityKg) * 100))}%)
+            </div>
+          )}
+          {refillErr && <div className={styles.refillErr}>{refillErr}</div>}
+          {refillOk  && <div className={styles.refillOk}>{refillOk}</div>}
+          <div className={styles.refillBtns}>
+            <button className={styles.refillSubmit} onClick={submitRefill} disabled={refillLoading}>
+              {refillLoading ? 'Saving…' : 'Confirm Refill'}
+            </button>
+            <button className={styles.refillCancel} onClick={() => setShowRefill(false)}>Cancel</button>
           </div>
         </div>
       )}
 
-      <div className={styles.grid}>
-        {outlets.map(o => {
-          const tankLow  = o.tankPct < 20
-          const tankWarn = o.tankPct < 40
-          return (
-            <div key={o.id} className={styles.card} onClick={() => setSelected(o)} role="button" tabIndex={0} onKeyDown={e => e.key==='Enter' && setSelected(o)}>
-              <div className={styles.cardTop}>
-                <div>
-                  <div className={styles.name}>{o.name}</div>
-                  <div className={styles.loc}>📍 {o.location}</div>
-                </div>
-                <span className={styles.activeBadge}>Active</span>
-              </div>
+      <div className={styles.kpiGrid}>
+        <div className={styles.kpi}>
+          <div className={styles.kpiLabel}>Revenue Today</div>
+          <div className={styles.kpiVal}>{fmt(dash.rev)}</div>
+          <div className={styles.kpiSub}>Target: {fmt(dash.dailyTarget)}</div>
+          <div className={styles.kpiProg}><div style={{ width: `${dash.pct}%`, background: dash.pct >= 80 ? 'var(--gl)' : dash.pct >= 40 ? 'var(--am)' : 'var(--rd)', height: '100%', borderRadius: 3 }} /></div>
+          <div className={styles.kpiPct}>{dash.pct}% of target</div>
+        </div>
+        <div className={styles.kpi}>
+          <div className={styles.kpiLabel}>KG Dispensed</div>
+          <div className={styles.kpiVal}>{dash.kg.toFixed(1)} kg</div>
+          <div className={styles.kpiSub}>Today</div>
+        </div>
+        <div className={styles.kpi}>
+          <div className={styles.kpiLabel}>Transactions</div>
+          <div className={styles.kpiVal}>{dash.count}</div>
+          <div className={styles.kpiSub}>{dash.linked} linked · {dash.count - dash.linked} walk-in</div>
+        </div>
+      </div>
 
-              <div className={styles.statsGrid}>
-                {[['Revenue',fmt(o.rev)],['KG',`${(o.kg||0).toFixed(1)} kg`],['Sales',o.count]].map(([l,v]) => (
-                  <div key={String(l)} className={styles.stat}><div className={styles.statLabel}>{l}</div><div className={styles.statVal}>{v}</div></div>
-                ))}
+      <div className={styles.twoCol}>
+        <div className={styles.card}>
+          <div className={styles.cardTitle}>Hourly Revenue</div>
+          <div className={styles.hourlyWrap}>
+            {hours.map((v, i) => (
+              <div key={i} className={styles.hourlyCol}>
+                <div className={styles.hourlyBar} style={{ height: v > 0 ? `${Math.max((v / maxH) * 80, 0)}px` : '0px', background: v === Math.max(...hours) ? 'var(--g)' : 'var(--gp)', borderTop: v > 0 ? '2px solid var(--gm)' : 'none' }} />
+                <span className={styles.hourlyLbl}>{6 + i}h</span>
               </div>
-
-              {/* Mini tank bar */}
-              <div className={styles.miniTankRow}>
-                <span className={`${styles.miniTankLabel} ${tankLow?styles.red:tankWarn?styles.amber:''}`}>
-                  ⛽ {tankLow?'CRITICAL':tankWarn?'Low':'Tank'}
-                </span>
-                <div className={styles.miniTankTrack}>
-                  <div style={{ width:`${o.tankPct}%`, height:'100%', borderRadius:3, background: tankLow?'var(--rd)':tankWarn?'var(--am)':'var(--gl)', transition:'width .5s ease' }} />
-                </div>
-                <span className={`${styles.miniTankPct} ${tankLow?styles.red:tankWarn?styles.amber:''}`}>{o.tankPct}%</span>
-              </div>
-
-              <div className={styles.progLabel}><span>Daily target</span><span>{o.pct}%</span></div>
-              <div className={styles.progTrack}>
-                <div style={{ width:`${o.pct}%`, height:'100%', borderRadius:3, background: o.pct>=80?'var(--gl)':o.pct>=40?'var(--am)':'var(--rd)' }} />
-              </div>
-
-              <div className={styles.viewHint}>Click to view full details →</div>
+            ))}
+          </div>
+        </div>
+        <div className={styles.card}>
+          <div className={styles.cardTitle}>Payment Mix</div>
+          {([['Cash','CASH','var(--g)'],['Transfer','TRANSFER','var(--am)'],['POS Card','POS_TERMINAL','#1a73e8']] as const).map(([lbl, key, col]) => (
+            <div key={key} className={styles.payRow}>
+              <div className={styles.payTop}><span>{lbl}</span><span style={{ color: col, fontFamily: 'var(--fn),sans-serif', fontWeight: 700 }}>{Math.round((payTotals[key] / payTotal) * 100)}%</span></div>
+              <div className={styles.payBar}><div style={{ width: `${(payTotals[key] / payTotal) * 100}%`, background: col, height: '100%', borderRadius: 3, transition: 'width .5s ease' }} /></div>
             </div>
-          )
-        })}
+          ))}
+          <div className={styles.targetRow}>
+            <div className={styles.payTop}><span>Daily Target</span><span style={{ fontWeight: 700 }}>{dash.pct}%</span></div>
+            <div className={styles.payBar}><div style={{ width: `${dash.pct}%`, background: dash.pct >= 80 ? 'var(--gl)' : dash.pct >= 40 ? 'var(--am)' : 'var(--rd)', height: '100%', borderRadius: 3, transition: 'width .5s ease' }} /></div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.card}>
+        <div className={styles.cardTitle}>Today's Transactions <span className={styles.txCount}>{txs.length}</span></div>
+        {txs.length === 0 ? <div className={styles.emptyState}>No transactions yet today</div> : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className={styles.tbl}>
+              <thead><tr><th>Time</th><th>Amount (₦)</th><th>KG</th><th>Cyl. Size</th><th>Payment</th><th>Customer</th></tr></thead>
+              <tbody>
+                {txs.slice(0, 30).map((t: any, i: number) => (
+                  <tr key={t.id} className={i % 2 ? styles.alt : ''}>
+                    <td className={styles.mono}>{fmtT(t.createdAt)}</td>
+                    <td className={styles.money}>{fmt(t.naira)}</td>
+                    <td className={styles.mono}>{fmtKg(t.kg)}</td>
+                    <td><span className={styles.badge}>{t.cylinderSize}kg</span></td>
+                    <td>{t.paymentMethod?.replace('_', ' ')}</td>
+                    <td>{t.cylinderId ? <span className={styles.cylId}>{t.cylinderId}</span> : <span className={styles.anon}>Walk-in</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )
