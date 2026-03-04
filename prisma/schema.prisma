@@ -1,8 +1,3 @@
-code prisma/schema.prisma
-```
-
-That opens it in VS Code. Then **Ctrl+A** to select all, **Delete**, and paste this — nothing else, just this exact text:
-```
 generator client {
   provider = "prisma-client-js"
 }
