@@ -1,3 +1,8 @@
+code prisma/schema.prisma
+```
+
+That opens it in VS Code. Then **Ctrl+A** to select all, **Delete**, and paste this — nothing else, just this exact text:
+```
 generator client {
   provider = "prisma-client-js"
 }
@@ -93,8 +98,3 @@ model Alert {
   isResolved    Boolean       @default(false)
   createdAt     DateTime      @default(now())
 }
-```
-
-Then also add `DIRECT_URL` to Vercel dashboard:
-```
-DIRECT_URL = postgresql://postgres.fsastsbfpruynhsnmvul:[MRyWX!6JpC-dG.3]@aws-1-eu-west-1.pooler.supabase.com:5432/postgres
