@@ -25,17 +25,16 @@ export async function POST(req: NextRequest) {
         data: {
           dailyTarget: 400000,
           tankCapacityKg: 2000,
-          tankCurrentKg: 0,
-          tankPct: 0
+          tankCurrentKg: 1000
         }
       }),
       
       // Reset price to default
-      prisma.price.deleteMany({}),
-      prisma.price.create({
+      prisma.priceRate.deleteMany({}),
+      prisma.priceRate.create({
         data: {
           pricePerKg: 1150,
-          updatedBy: user.id
+          setBy: user.id
         }
       })
     ]
