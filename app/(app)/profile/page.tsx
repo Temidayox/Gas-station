@@ -205,7 +205,7 @@ export default function ProfilePage() {
       <div className={styles.grid}>
         <div className={styles.card}>
           <div className={styles.cardTitle}>Monthly Spend</div>
-          <div style={{ padding: "8px 0 4px" }}>
+          <div style={{ padding: "8px 0 4px", height: 160 }}>
             {(() => {
               const W = 320, H = 100, pad = 24
               const vals = (monthlySpend ?? []).map((m: any) => m.value)
@@ -218,7 +218,7 @@ export default function ProfilePage() {
               const polyline = pts.map((p: any) => `${p.x},${p.y}`).join(" ")
               const area = `${pts[0].x},${H - pad} ` + pts.map((p: any) => `${p.x},${p.y}`).join(" ") + ` ${pts[pts.length-1].x},${H - pad}`
               return (
-                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "100%", minHeight: 160, overflow: "visible" }}>
+                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 150, overflow: "visible" }} preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#2d7a3a" stopOpacity={0.18}/>
@@ -229,7 +229,7 @@ export default function ProfilePage() {
                     <line key={t} x1={pad} x2={W - pad} y1={H - pad - t * (H - pad * 2)} y2={H - pad - t * (H - pad * 2)} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4,4"/>
                   ))}
                   <polygon points={area} fill="url(#lineGrad)"/>
-                  <polyline points={polyline} fill="none" stroke="#2d7a3a" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
+                  <polyline points={polyline} fill="none" stroke="#2d7a3a" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
                   {pts.map((p: any, i: number) => (
                     <g key={i}>
                       <circle cx={p.x} cy={p.y} r="4" fill="#2d7a3a" stroke="white" strokeWidth="2"/>
@@ -350,6 +350,7 @@ export default function ProfilePage() {
     </div>
   )
 }
+
 
 
 
