@@ -87,7 +87,12 @@ export async function POST(req: NextRequest) {
       },
       include: {
         outlet: { select: { name: true } },
-        cylinder: { select: { owner: { select: { name: true } } } },
+        cylinder: { 
+          select: { 
+            owner: { select: { id: true, name: true } },
+            ownerId: true
+          } 
+        },
       },
     }),
     // Update tank level atomically
@@ -100,6 +105,18 @@ export async function POST(req: NextRequest) {
       data: { tankCurrentKg: { decrement: kg } },
     }),
   ])
+
+  // Allocate Smoke to cylinder owner (20 Smoke per 1000 naira)
+  if (tx.cylinder?.ownerId) {
+    const smokeEarned = Math.floor((parseFloat(naira) / 1000) * 20)
+    if (smokeEarned > 0) {
+      await prisma.user.update({
+        where: { id: tx.cylinder.ownerId },
+        data: { smokeBalance: { increment: smokeEarned } }
+      })
+      console.log(`✅ Allocated ${smokeEarned} Smoke to user ${tx.cylinder.ownerId}`)
+    }
+  }
 
   try {
     const pusher = getPusherServer()

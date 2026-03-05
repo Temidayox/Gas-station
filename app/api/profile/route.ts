@@ -10,7 +10,12 @@ export async function GET(req: NextRequest) {
 
   const fullUser = await prisma.user.findUnique({
     where: { id: user.id },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      smokeBalance: true,
       cylinders: {
         include: {
           transactions: {
@@ -62,6 +67,7 @@ export async function GET(req: NextRequest) {
       name:  fullUser.name  ?? '',
       email: fullUser.email ?? '',
       phone: fullUser.phone ?? null,
+      smokeBalance: fullUser.smokeBalance ?? 0,
     },
     cylinders: fullUser.cylinders.map(c => ({
       id:         c.id,
