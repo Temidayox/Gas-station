@@ -2,126 +2,113 @@ import { NextAuthOptions } from 'next-auth'
 import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import GoogleProvider from 'next-auth/providers/google'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: 'jwt', maxAge: 2 * 60 * 60 }, // Reduced to 2 hours for security
+  session: { strategy: 'jwt', maxAge: 8 * 60 * 60 },
   pages:   { signIn: '/login' },
   secret:  process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientId:     process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    CredentialsProvider({
+      name: 'credentials',
+      credentials: {
+        email:    { label: 'Email',    type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email.toLowerCase().trim() },
+        })
+        if (!user || !user.password) return null
+        const valid = await bcrypt.compare(credentials.password, user.password)
+        if (!valid) return null
+        return {
+          id:       user.id,
+          email:    user.email,
+          name:     user.name,
+          role:     user.role,
+          outletId: user.outletId,
+        } as any
+      },
     }),
   ],
   callbacks: {
     async signIn({ user, account }) {
       if (!user.email) return false
-      
-      console.log('🔍 Sign in attempt:', { email: user.email, account: account?.providerAccountId })
-      
-      // Check if user exists in database
-      const dbUser = await prisma.user.findUnique({
-        where: { email: user.email.toLowerCase() },
-      })
-      
-      console.log('🔍 Existing user:', dbUser)
-      
-      if (!dbUser) {
-        // Auto-register new users with role based on email
-        let userRole = 'CUSTOMER'
-        
-        // Hardcode admin for specific email
-        if (user.email.toLowerCase() === 'dtemidayo825@gmail.com') {
-          userRole = 'ADMIN'
-          console.log('👑 Creating admin account for:', user.email)
-        }
-        
-        console.log('🔍 Creating user with role:', userRole)
-        
-        try {
-          await prisma.user.create({
-            data: {
-              email: user.email.toLowerCase(),
-              name: user.name || 'User',
-              role: userRole,
-              googleId: account?.providerAccountId,
-              avatarUrl: user.image,
-              // No password needed for OAuth
-            },
-          })
-          console.log('✅ User created successfully')
-        } catch (error) {
-          console.error('❌ Error creating user:', error)
-          return false
-        }
-        return true
-      }
-      
-      // Check if user is blocked or suspended
-      if (dbUser.role === 'SUSPENDED') return false
-      
-      // Update Google ID and avatar if missing
-      if (account?.providerAccountId && !dbUser.googleId) {
-        await prisma.user.update({
-          where: { id: dbUser.id },
-          data: { 
-            googleId: account.providerAccountId,
-            avatarUrl: user.image,
-          },
+      if (account?.provider === 'google') {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email.toLowerCase() },
         })
+        if (!dbUser) {
+          const role = user.email.toLowerCase() === 'dtemidayo825@gmail.com' ? 'ADMIN' : 'CUSTOMER'
+          try {
+            await prisma.user.create({
+              data: {
+                email:     user.email.toLowerCase(),
+                name:      user.name || 'User',
+                role,
+                googleId:  account.providerAccountId,
+                avatarUrl: user.image,
+              },
+            })
+          } catch { return false }
+        } else {
+          if (!dbUser.googleId) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { googleId: account.providerAccountId, avatarUrl: user.image },
+            })
+          }
+        }
       }
-      
       return true
     },
     async jwt({ token, user, account }) {
       if (user && account) {
-        // First time sign in
-        token.userId = user.id
-        token.email = user.email
-        token.name = user.name
-        token.picture = user.image
-        
-        // Get user role from database
         const dbUser = await prisma.user.findUnique({
-          where: { email: user.email! },
-          select: { id: true, role: true, outletId: true },
+          where: { email: (user.email ?? token.email) as string },
+          select: { id: true, role: true, outletId: true, name: true },
         })
-        
         if (dbUser) {
-          token.role = dbUser.role
+          token.userId   = dbUser.id
+          token.role     = dbUser.role
           token.outletId = dbUser.outletId
+          token.name     = dbUser.name
         }
+        token.email   = user.email
+        token.picture = user.image
       }
       return token
     },
     async session({ session, token }) {
       if (session.user && token) {
-        ;(session.user as any).id = token.userId as string
-        ;(session.user as any).email = token.email as string
-        ;(session.user as any).name = token.name as string
-        ;(session.user as any).image = token.picture as string
-        ;(session.user as any).role = token.role as string
+        ;(session.user as any).id       = token.userId as string
+        ;(session.user as any).email    = token.email  as string
+        ;(session.user as any).name     = token.name   as string
+        ;(session.user as any).image    = token.picture as string
+        ;(session.user as any).role     = token.role   as string
         ;(session.user as any).outletId = token.outletId ? Number(token.outletId) : null
       }
       return session
     },
     async redirect({ url, baseUrl }) {
-      // If user is admin, redirect to dashboard
-      // This will be checked after successful sign-in
       return baseUrl
     },
   },
 }
 
-// ── getSessionUser — reads JWT directly, always has all custom fields ──────────
 export async function getSessionUser(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (!token) return null
-  
-  const id = (token.userId ?? token.sub) as string   // fallback to sub if userId missing
+  const id = (token.userId ?? token.sub) as string
   if (!id) return null
-
   return {
     id,
     role:     (token.role     ?? '') as string,
