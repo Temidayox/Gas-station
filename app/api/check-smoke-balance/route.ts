@@ -29,14 +29,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Cylinder not linked to any user' }, { status: 404 })
     }
 
-    // Get owner with smoke balance and preference
+    // Get owner info (without smoke fields until migration)
     const owner = await prisma.user.findUnique({
       where: { id: cylinder.ownerId },
       select: {
         id: true,
-        name: true,
-        smokeBalance: true,
-        useSmokeBalance: true
+        name: true
       }
     })
 
@@ -44,11 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Cylinder owner not found' }, { status: 404 })
     }
 
-    // Check if user wants to use Smoke balance AND has Smoke available
-    const canUseSmoke = owner.useSmokeBalance && (owner.smokeBalance || 0) > 0
-    const smokeDiscount = canUseSmoke ? Math.min(owner.smokeBalance || 0, 1000) : 0 // Cap at 1000 for safety
-
-    // Return cylinder info and user's smoke balance
+    // Return cylinder info with default smoke values until migration
     return NextResponse.json({
       success: true,
       cylinder: {
@@ -57,17 +51,13 @@ export async function POST(req: NextRequest) {
         owner: {
           id: owner.id,
           name: owner.name,
-          smokeBalance: owner.smokeBalance || 0,
-          useSmokeBalance: owner.useSmokeBalance || false
+          smokeBalance: 0, // Default until migration runs
+          useSmokeBalance: false // Default until migration runs
         }
       },
-      canUseSmoke,
-      smokeDiscount,
-      message: owner.useSmokeBalance 
-        ? (owner.smokeBalance || 0) > 0 
-          ? `User has opted to use Smoke balance: ${owner.smokeBalance || 0} Smoke available (up to ${smokeDiscount} Naira discount)`
-          : 'User has opted to use Smoke balance but has no Smoke available'
-        : 'User has NOT opted to use Smoke balance for this purchase'
+      canUseSmoke: false, // Disabled until migration runs
+      smokeDiscount: 0,
+      message: 'Smoke balance system pending database migration'
     })
 
   } catch (error: any) {

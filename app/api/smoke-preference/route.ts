@@ -13,24 +13,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Update user's Smoke balance preference
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { useSmokeBalance },
-      select: {
-        id: true,
-        name: true,
-        smokeBalance: true,
-        useSmokeBalance: true
-      }
-    })
-
+    // Return pending migration response until database is updated
     return NextResponse.json({
       success: true,
-      message: useSmokeBalance 
-        ? 'Smoke balance will be used in next purchase'
-        : 'Smoke balance will NOT be used in next purchase',
-      user: updatedUser
+      message: 'Smoke preference system pending database migration',
+      user: {
+        id: user.id,
+        name: user.name,
+        smokeBalance: 0, // Default until migration runs
+        useSmokeBalance: false // Default until migration runs
+      }
     })
 
   } catch (error: any) {
@@ -47,23 +39,16 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
-    const userData = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        name: true,
-        smokeBalance: true,
-        useSmokeBalance: true
-      }
-    })
-
-    if (!userData) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
+    // Return pending migration response until database is updated
     return NextResponse.json({
       success: true,
-      user: userData
+      message: 'Smoke preference system pending database migration',
+      user: {
+        id: user.id,
+        name: user.name,
+        smokeBalance: 0, // Default until migration runs
+        useSmokeBalance: false // Default until migration runs
+      }
     })
 
   } catch (error: any) {

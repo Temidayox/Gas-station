@@ -110,11 +110,20 @@ export async function POST(req: NextRequest) {
   if (tx.cylinder?.ownerId) {
     const smokeEarned = Math.floor((parseFloat(naira) / 1000) * 20)
     if (smokeEarned > 0) {
-      await prisma.user.update({
-        where: { id: tx.cylinder.ownerId },
-        data: { smokeBalance: { increment: smokeEarned } }
-      })
-      console.log(`✅ Allocated ${smokeEarned} Smoke to user ${tx.cylinder.ownerId}`)
+      try {
+        await prisma.user.update({
+          where: { id: tx.cylinder.ownerId },
+          data: { smokeBalance: { increment: smokeEarned } }
+        })
+        console.log(`✅ Allocated ${smokeEarned} Smoke to user ${tx.cylinder.ownerId}`)
+      } catch (error: any) {
+        // If smokeBalance field doesn't exist yet, log but don't fail
+        if (error.message?.includes('smokeBalance') || error.message?.includes('column')) {
+          console.log(`⏳ Smoke allocation pending migration: ${smokeEarned} Smoke for user ${tx.cylinder.ownerId}`)
+        } else {
+          throw error
+        }
+      }
     }
   }
 
