@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
+import ThemeToggle from './ThemeToggle'
 import styles from './Sidebar.module.css'
 
 type NavItem = { href: string; icon: string; label: string }
@@ -80,6 +81,11 @@ export function Sidebar({ user }: { user: any }) {
             <div className={styles.brand}>GAS STATION</div>
             <div className={styles.brandSub}>Nigeria LPG</div>
           </div>
+        </div>
+
+        {/* Theme Toggle */}
+        <div className={styles.themeSection}>
+          <ThemeToggle />
         </div>
 
         {(user?.role === 'ADMIN' || user?.role === 'OUTLET_STAFF') && (

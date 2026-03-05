@@ -10,10 +10,26 @@ export default function SettingsPage() {
   const [saved, setSaved]       = useState(false)
   const [saveErr, setSaveErr]   = useState('')
   const [priceErr, setPriceErr] = useState('')
+  
+  // Admin management states
+  const [adminUsers, setAdminUsers] = useState<any[]>([])
+  const [newAdmin, setNewAdmin] = useState({ email: '', role: 'ADMIN', outletId: null })
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [adminSaving, setAdminSaving] = useState(false)
 
   useEffect(() => {
     fetch('/api/price').then(r => r.json()).then(d => {
       setCurrent(d.pricePerKg); setPrice(String(d.pricePerKg))
+    })
+    
+    // Fetch admin users
+    fetch('/api/admin/users').then(r => r.json()).then(d => {
+      if (d.users) setAdminUsers(d.users)
+    }).catch(() => {
+      // If API doesn't exist, use hardcoded admin
+      setAdminUsers([
+        { id: 1, email: 'dtemidayo825@gmail.com', role: 'ADMIN', outletId: null, createdAt: new Date() }
+      ])
     })
   }, [])
 
@@ -49,22 +65,56 @@ export default function SettingsPage() {
     }
   }
 
-  const DEMO_CREDS = [
-    { role: 'Admin',      email: 'admin@gasstation.ng',   pw: 'Admin@2026',  color: '#0f5c2e' },
-    { role: 'Outlet 1',   email: 'outlet1@gasstation.ng', pw: 'Outlet1@26',  color: '#1a7a3f' },
-    { role: 'Outlet 2',   email: 'outlet2@gasstation.ng', pw: 'Outlet2@26',  color: '#1a7a3f' },
-    { role: 'Outlet 3',   email: 'outlet3@gasstation.ng', pw: 'Outlet3@26',  color: '#22a050' },
-    { role: 'Outlet 4',   email: 'outlet4@gasstation.ng', pw: 'Outlet4@26',  color: '#22a050' },
-    { role: 'Customer A', email: 'demo.a@gasstation.ng',  pw: 'Demo@001',    color: '#c98700' },
-    { role: 'Customer B', email: 'demo.b@gasstation.ng',  pw: 'Demo@002',    color: '#c98700' },
-    { role: 'Customer C', email: 'demo.c@gasstation.ng',  pw: 'Demo@003',    color: '#c98700' },
-  ]
+  async function addAdminUser() {
+    if (!newAdmin.email) return
+    
+    setAdminSaving(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAdmin),
+      })
+      
+      if (res.ok) {
+        const user = await res.json()
+        setAdminUsers([...adminUsers, user])
+        setNewAdmin({ email: '', role: 'ADMIN', outletId: null })
+        setShowAddForm(false)
+      } else {
+        const d = await res.json()
+        alert(d.error || 'Failed to add admin user')
+      }
+    } catch {
+      alert('Network error — try again')
+    } finally {
+      setAdminSaving(false)
+    }
+  }
+
+  async function removeAdminUser(userId: number) {
+    if (!confirm('Are you sure you want to remove this admin user?')) return
+    
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      })
+      
+      if (res.ok) {
+        setAdminUsers(adminUsers.filter(u => u.id !== userId))
+      } else {
+        alert('Failed to remove admin user')
+      }
+    } catch {
+      alert('Network error — try again')
+    }
+  }
 
   const STACK = [
     ['Framework',   'Next.js 14 (App Router)',        '#000'],
     ['Database',    'PostgreSQL via Supabase',         '#3ecf8e'],
     ['ORM',         'Prisma',                          '#5a67d8'],
-    ['Auth',        'NextAuth.js — JWT, 8h sessions',  '#0070f3'],
+    ['Auth',        'NextAuth.js — Google OAuth',       '#0070f3'],
     ['Realtime',    'Pusher WebSockets',               '#e60076'],
     ['Hosting',     'Vercel (Edge + Serverless)',       '#000'],
   ]
@@ -133,21 +183,108 @@ export default function SettingsPage() {
         </div>
 
         <div className={styles.right}>
-          {/* Credentials */}
+          {/* Admin User Management */}
           <div className={styles.card}>
-            <div className={styles.cardTitle} style={{marginBottom:16}}>Demo Credentials</div>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardIcon} style={{background:'var(--am)'}}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--am)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 0 4 4 0 000 8z"/></svg>
+              </div>
+              <div>
+                <div className={styles.cardTitle}>Admin User Management</div>
+                <div className={styles.cardSub}>Manage Gmail accounts with admin access</div>
+              </div>
+            </div>
+
+            {/* Add Admin Form */}
+            {!showAddForm ? (
+              <button 
+                className={styles.saveBtn} 
+                style={{marginBottom: 16, background: 'var(--am)'}}
+                onClick={() => setShowAddForm(true)}
+              >
+                + Add Admin User
+              </button>
+            ) : (
+              <div style={{background: 'var(--surf)', padding: 16, borderRadius: 'var(--r)', marginBottom: 16}}>
+                <div className={styles.field}>
+                  <label>Gmail Address</label>
+                  <input
+                    className={styles.inp}
+                    type="email"
+                    placeholder="admin@company.com"
+                    value={newAdmin.email}
+                    onChange={e => setNewAdmin({...newAdmin, email: e.target.value})}
+                    style={{padding: '12px 14px'}}
+                  />
+                </div>
+                
+                <div className={styles.field}>
+                  <label>Role</label>
+                  <select 
+                    className={styles.inp}
+                    value={newAdmin.role}
+                    onChange={e => setNewAdmin({...newAdmin, role: e.target.value})}
+                    style={{padding: '12px 14px'}}
+                  >
+                    <option value="ADMIN">Super Admin</option>
+                    <option value="OUTLET_STAFF">Outlet Staff</option>
+                  </select>
+                </div>
+
+                <div style={{display: 'flex', gap: 8}}>
+                  <button 
+                    className={styles.saveBtn}
+                    onClick={addAdminUser}
+                    disabled={adminSaving || !newAdmin.email}
+                  >
+                    {adminSaving ? 'Adding…' : 'Add User'}
+                  </button>
+                  <button 
+                    className={styles.saveBtn}
+                    style={{background: 'var(--surf)', color: 'var(--ink)', border: '1px solid var(--bdr)'}}
+                    onClick={() => {
+                      setShowAddForm(false)
+                      setNewAdmin({ email: '', role: 'ADMIN', outletId: null })
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Admin Users List */}
             <div className={styles.credList}>
-              {DEMO_CREDS.map(c => (
-                <div key={c.email} className={styles.cred}>
-                  <div className={styles.credRole} style={{color:c.color}}>{c.role}</div>
-                  <div className={styles.credLine}>
-                    <span className={styles.credEmail}>{c.email}</span>
-                    <span className={styles.credSep}>/</span>
-                    <span className={styles.credPw}>{c.pw}</span>
+              {adminUsers.map(user => (
+                <div key={user.id} className={styles.cred}>
+                  <div className={styles.credRole} style={{color: user.role === 'ADMIN' ? 'var(--g)' : 'var(--am)'}}>
+                    {user.role === 'ADMIN' ? '👑 Super Admin' : '⛽ Outlet Staff'}
                   </div>
+                  <div className={styles.credLine}>
+                    <span className={styles.credEmail}>{user.email}</span>
+                    {user.outletId && <span className={styles.credSep}>• Outlet {user.outletId}</span>}
+                  </div>
+                  {user.email !== 'dtemidayo825@gmail.com' && (
+                    <button 
+                      className={styles.saveBtn}
+                      style={{marginTop: 8, padding: '6px 12px', fontSize: 11, background: 'var(--rd)'}}
+                      onClick={() => removeAdminUser(user.id)}
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
+
+            <p className={styles.hint} style={{marginTop: 16}}>
+              <strong>How it works:</strong><br/>
+              • Add Gmail addresses that should have admin access<br/>
+              • Users sign in with Google OAuth using these emails<br/>
+              • Super Admins get full system access<br/>
+              • Outlet Staff get access to assigned outlet only<br/>
+              • Changes sync immediately across all devices
+            </p>
           </div>
 
           {/* Outlet quick ref */}

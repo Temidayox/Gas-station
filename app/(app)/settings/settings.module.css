@@ -20,7 +20,7 @@
 .inpErr{border-color:var(--rd)!important;box-shadow:0 0 0 3px rgba(217,48,37,.08)!important;}
 .fieldErr{font-size:12px;color:var(--rd);font-weight:500;}
 .hint{font-size:11.5px;color:var(--inks);line-height:1.7;margin-bottom:16px;}
-.saveBtn{width:100%;padding:12px 22px;background:var(--g);color:white;border:none;border-radius:var(--r);font-family:var(--fb),sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.saveBtn{width:100%;padding:12px 22px;background:var(--g);color:white;border:none;border-radius:var(--r);font-family:var(--fb),sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;}
 .saveBtn:hover{background:var(--gm);transform:translateY(-1px);}
 .saveBtn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
 .saveBtnSuccess{background:var(--gl)!important;transform:none!important;}
@@ -41,3 +41,199 @@
 .outletNum{width:28px;height:28px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fn),sans-serif;font-weight:800;font-size:13px;flex-shrink:0;}
 .outletName{font-weight:700;font-size:13px;}
 .outletTarget{font-size:11px;color:var(--inks);}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .wrap {
+    padding: 16px !important;
+    max-width: 100% !important;
+  }
+  
+  .title {
+    font-size: 20px !important;
+    text-align: center !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .left,
+  .right {
+    gap: 16px !important;
+  }
+  
+  .card {
+    padding: 20px !important;
+  }
+  
+  .cardHeader {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: flex-start !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .cardTitle {
+    font-size: 18px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .cardSub {
+    font-size: 11px !important;
+  }
+  
+  .currentRate {
+    padding: 12px 16px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .currentVal {
+    font-size: 22px !important;
+  }
+  
+  .field {
+    margin-bottom: 8px !important;
+  }
+  
+  .inputRow {
+    margin-bottom: 4px !important;
+  }
+  
+  .inp {
+    padding: 14px 14px 14px 36px !important;
+    font-size: 16px !important;
+    min-height: 48px !important;
+  }
+  
+  .saveBtn {
+    padding: 14px 20px !important;
+    font-size: 16px !important;
+    min-height: 48px !important;
+  }
+  
+  .hint {
+    font-size: 11px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .stackRow {
+    font-size: 12px !important;
+    padding: 8px 0 !important;
+  }
+  
+  .credList {
+    gap: 4px !important;
+  }
+  
+  .cred {
+    padding: 8px 10px !important;
+  }
+  
+  .credRole {
+    font-size: 9px !important;
+    margin-bottom: 2px !important;
+  }
+  
+  .credLine {
+    font-size: 11px !important;
+  }
+  
+  .credEmail {
+    font-size: 11px !important;
+  }
+  
+  .credPw {
+    font-size: 11px !important;
+  }
+  
+  .outletRow {
+    padding: 8px 0 !important;
+  }
+  
+  .outletName {
+    font-size: 12px !important;
+  }
+  
+  .outletTarget {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrap {
+    padding: 12px !important;
+  }
+  
+  .title {
+    font-size: 18px !important;
+  }
+  
+  .card {
+    padding: 16px !important;
+  }
+  
+  .cardHeader {
+    gap: 10px !important;
+  }
+  
+  .cardTitle {
+    font-size: 16px !important;
+  }
+  
+  .currentVal {
+    font-size: 20px !important;
+  }
+  
+  .inp {
+    padding: 12px 12px 12px 32px !important;
+    font-size: 16px !important;
+  }
+  
+  .saveBtn {
+    padding: 16px 18px !important;
+    font-size: 15px !important;
+  }
+  
+  .stackRow {
+    font-size: 11px !important;
+  }
+  
+  .cred {
+    padding: 6px 8px !important;
+  }
+  
+  .credRole {
+    font-size: 8px !important;
+  }
+  
+  .credLine {
+    font-size: 10px !important;
+  }
+  
+  .credEmail,
+  .credPw {
+    font-size: 10px !important;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .wrap {
+    padding: 12px !important;
+  }
+  
+  .title {
+    margin-bottom: 16px !important;
+  }
+  
+  .card {
+    padding: 16px !important;
+  }
+  
+  .currentRate {
+    margin-bottom: 12px !important;
+  }
+}
