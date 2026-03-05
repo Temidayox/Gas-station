@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth'
+import { generateMultipleCylinderCodes } from '@/lib/cylinderGenerator'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -24,18 +25,15 @@ export async function POST(req: NextRequest) {
   const { count } = await req.json()
   const qty = Math.min(Math.max(parseInt(count) || 1, 1), 50)
 
-  // Find highest existing ID number
-  const all = await prisma.cylinder.findMany({ select: { id: true } })
-  const maxNum = all.reduce((max, c) => {
-    const n = parseInt(c.id.replace('GS', ''))
-    return isNaN(n) ? max : Math.max(max, n)
-  }, 0)
+  // Generate secure random alphanumeric codes
+  const newCodes = generateMultipleCylinderCodes(qty)
 
   const created = []
-  for (let i = 0; i < qty; i++) {
-    const id = `GS${String(maxNum + i + 1).padStart(5, '0')}`
+  for (const code of newCodes) {
     // size=0 means unassigned — actual cylinder size recorded at first fill
-    created.push(await prisma.cylinder.create({ data: { id, size: 0, isLinked: false } }))
+    created.push(await prisma.cylinder.create({ 
+      data: { id: code, size: 0, isLinked: false } 
+    }))
   }
 
   return NextResponse.json({ created, count: created.length })

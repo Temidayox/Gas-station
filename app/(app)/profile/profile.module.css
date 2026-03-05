@@ -18,21 +18,21 @@
   .historyStats{grid-template-columns:1fr;gap:12px;padding:16px;}
 }
 .smokeBalance{display:flex;align-items:center;gap:12px;background:var(--wh);border:1px solid var(--bdr);border-radius:var(--r-md);padding:16px 20px;margin-bottom:22px;box-shadow:var(--sh);position:relative;overflow:hidden;}
-.campfireBg{position:absolute;top:0;left:0;right:0;bottom:0;opacity:0.15;z-index:0;}
-.flames{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;gap:4px;}
-.flame{width:8px;height:20px;background:linear-gradient(to top, #ff6b35, #f7931e, #ffd700);border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;animation:flicker 1.5s ease-in-out infinite alternate;}
-.flame:nth-child(2){animation-delay:0.2s;height:16px;}
-.flame:nth-child(3){animation-delay:0.4s;height:24px;}
-.flame:nth-child(4){animation-delay:0.6s;height:18px;}
-.flame:nth-child(5){animation-delay:0.8s;height:22px;}
-.smoke{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:6px;}
-.smokeParticle{width:12px;height:12px;background:rgba(150,150,150,0.6);border-radius:50%;animation:smokeRise 3s ease-out infinite;}
-.smokeParticle:nth-child(2){animation-delay:0.6s;left:45%;}
-.smokeParticle:nth-child(3){animation-delay:1.2s;left:55%;}
-.smokeParticle:nth-child(4){animation-delay:1.8s;left:48%;}
-.smokeParticle:nth-child(5){animation-delay:2.4s;left:52%;}
-@keyframes flicker{0%,100%{transform:scaleY(1) rotate(-2deg);}50%{transform:scaleY(1.1) rotate(2deg);}}
-@keyframes smokeRise{0%{transform:translateY(0) scale(1);opacity:0.6;}100%{transform:translateY(-40px) scale(2);opacity:0;}}
+.campfireBg{position:absolute;top:0;left:0;right:0;bottom:0;opacity:0.25;z-index:0;background:linear-gradient(to top, rgba(255,107,0,0.1), rgba(255,215,0,0.05));}
+.flames{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;gap:6px;}
+.flame{width:12px;height:30px;background:linear-gradient(to top, #ff6b35, #f7931e, #ffd700);border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;animation:flicker 1.5s ease-in-out infinite alternate;box-shadow:0 0 20px rgba(255,107,0,0.8), 0 0 30px rgba(255,165,0,0.6);}
+.flame:nth-child(2){animation-delay:0.3s;height:25px;}
+.flame:nth-child(3){animation-delay:0.6s;height:35px;}
+.flame:nth-child(4){animation-delay:0.9s;height:28px;}
+.flame:nth-child(5){animation-delay:1.2s;height:32px;}
+.smoke{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.smokeParticle{width:16px;height:16px;background:rgba(150,150,150,0.8);border-radius:50%;animation:smokeRise 4s ease-out infinite;}
+.smokeParticle:nth-child(2){animation-delay:0.8s;left:40%;width:20px;height:20px;}
+.smokeParticle:nth-child(3){animation-delay:1.6s;left:60%;width:18px;height:18px;}
+.smokeParticle:nth-child(4){animation-delay:2.4s;left:45%;width:22px;height:22px;}
+.smokeParticle:nth-child(5){animation-delay:3.2s;left:55%;width:14px;height:14px;}
+@keyframes flicker{0%,100%{transform:scaleY(1) rotate(-3deg);opacity:0.9;}50%{transform:scaleY(1.2) rotate(3deg);opacity:1;}}
+@keyframes smokeRise{0%{transform:translateY(0) scale(1);opacity:0.8;}100%{transform:translateY(-60px) scale(3);opacity:0;}}
 .smokeIcon{width:48px;height:48px;background:var(--gp);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--g);position:relative;z-index:1;}
 .smokeInfo{flex:1;position:relative;z-index:1;}
 .smokeLabel{font-size:11px;font-weight:700;color:var(--inks);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}

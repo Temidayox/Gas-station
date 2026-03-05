@@ -103,8 +103,8 @@ export default function ProfilePage() {
             </div>
             <button className={styles.historyIconBtn} onClick={() => setShowHistory(true)}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 4v6h-6M1 20v-6h6"/>
-                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                <path d="M12 2v6m0 4v6m0-4l-2-2m2 2l2-2M3 12h6m4 0h6m-4 0l2-2m-2 2l-2-2"/>
+                <circle cx="12" cy="12" r="10"/>
               </svg>
             </button>
           </div>
