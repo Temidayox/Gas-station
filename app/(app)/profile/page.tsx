@@ -156,7 +156,7 @@ export default function ProfilePage() {
     <div className={styles.wrap}>
       {selected && <ReceiptModal tx={selected} onClose={() => setSelected(null)} />}
 
-      <div className={styles.hero}>
+      <div className={styles.hero} style={{animation:"slideUp 0.5s ease forwards"}} >
         <div className={styles.heroLeft}>
           <div className={styles.avatarArea}>
             <div className={styles.avatar} style={{background: 'white', border: `3px solid ${userColor}`}}>
@@ -169,11 +169,11 @@ export default function ProfilePage() {
                 <line x1="16" y1="8" x2="16" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
               </svg>
             </div>
-            <div className={styles.username}>@{user.username || 'user'}</div>
+            
           </div>
           <div>
-            <h1 className={styles.name}>{user.name}</h1>
-            <div className={styles.contact}>
+            <h1 className={styles.name} style={{animation:"slideUp 0.5s ease 0.1s both"}}>{user.name}</h1>
+            <div className={styles.contact} style={{animation:"slideUp 0.5s ease 0.2s both"}}>
               <span>{user.email}</span>
               {user.phone && <><span className={styles.dot}>·</span><span>{user.phone}</span></>}
             </div>
@@ -218,7 +218,7 @@ export default function ProfilePage() {
               const polyline = pts.map((p: any) => `${p.x},${p.y}`).join(" ")
               const area = `${pts[0].x},${H - pad} ` + pts.map((p: any) => `${p.x},${p.y}`).join(" ") + ` ${pts[pts.length-1].x},${H - pad}`
               return (
-                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 120, overflow: "visible" }}>
+                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "100%", minHeight: 160, overflow: "visible" }}>
                   <defs>
                     <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#2d7a3a" stopOpacity={0.18}/>
@@ -350,5 +350,6 @@ export default function ProfilePage() {
     </div>
   )
 }
+
 
 
