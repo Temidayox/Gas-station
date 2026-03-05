@@ -274,7 +274,7 @@ export default function ProfilePage() {
               <input
                 className={styles.linkInp}
                 type="text"
-                placeholder="e.g. GS00001"
+                placeholder="e.g. 0XIEQ"
                 value={linkId}
                 onChange={e => { setLinkId(e.target.value.toUpperCase()); setLinkErr('') }}
                 style={{ textTransform: 'uppercase' }}
@@ -350,6 +350,7 @@ export default function ProfilePage() {
     </div>
   )
 }
+
 
 
 
