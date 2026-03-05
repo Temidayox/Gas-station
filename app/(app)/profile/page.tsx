@@ -3,10 +3,87 @@ import { useEffect, useState } from 'react'
 import { fmt, fmtKg, fmtD, fmtT } from '@/lib/utils'
 import styles from './profile.module.css'
 
+function ReceiptModal({ tx, onClose }: { tx: any; onClose: () => void }) {
+  const smokeUsed = tx.smokeUsed ?? 0
+  const totalBill = tx.naira + smokeUsed
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 1000, padding: 16,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: 'var(--card)', borderRadius: 16, padding: 28,
+          width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%',
+            background: 'var(--gp)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', margin: '0 auto 12px',
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--g)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </div>
+          <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--ink)' }}>Transaction Receipt</div>
+          <div style={{ fontSize: 12, color: 'var(--inks)', marginTop: 4 }}>{fmtD(tx.createdAt)} · {fmtT(tx.createdAt)}</div>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--bdr)', paddingTop: 16 }}>
+          {[
+            ['TX ID', tx.id.slice(0, 16).toUpperCase()],
+            ['Outlet', tx.outlet?.name ?? '—'],
+            ['Cylinder ID', tx.cylinderId ?? '—'],
+            ['Cylinder Size', `${tx.cylinderSize} kg`],
+            ['Total Bill', fmt(totalBill)],
+            ...(smokeUsed > 0 ? [
+              ['🔥 Smoke Used', `${smokeUsed} Smoke (−${fmt(smokeUsed)})`],
+              ['Naira Charged', fmt(tx.naira)],
+            ] : [['Amount Paid', fmt(tx.naira)]]),
+            ['Gas Dispensed', fmtKg(tx.kg)],
+            ['Payment', tx.paymentMethod?.replace('_', ' ')],
+          ].map(([label, value]) => (
+            <div key={label} style={{
+              display: 'flex', justifyContent: 'space-between',
+              padding: '7px 0', borderBottom: '1px solid var(--bdr)', fontSize: 13,
+            }}>
+              <span style={{ color: 'var(--inks)' }}>{label}</span>
+              <span style={{
+                fontWeight: 600,
+                color: label === '🔥 Smoke Used' ? '#FF8C00' : 'var(--ink)',
+                maxWidth: '55%', textAlign: 'right',
+              }}>{value}</span>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={onClose}
+          style={{
+            width: '100%', marginTop: 20, padding: '12px',
+            background: 'var(--g)', color: 'white', border: 'none',
+            borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+          }}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function ProfilePage() {
   const [data, setData]     = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState('')
+  const [selected, setSelected] = useState<any>(null)
 
   const [linking, setLinking]       = useState(false)
   const [linkId, setLinkId]         = useState('')
@@ -14,7 +91,6 @@ export default function ProfilePage() {
   const [linkErr, setLinkErr]       = useState('')
   const [linkOk, setLinkOk]         = useState('')
 
-  // Generate random color for user
   const getUserColor = (email: string) => {
     const colors = [
       '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FE9A0B',
@@ -74,32 +150,26 @@ export default function ProfilePage() {
   const stats        = data?.stats        ?? { totalSpend: 0, totalKg: 0, refillCount: 0, favOutlet: '—' }
   const monthlySpend = data?.monthlySpend ?? []
   const maxMonth = Math.max(...(monthlySpend ?? []).map((m: any) => m.value), 1)
-  const initials = (user.name ?? 'U').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
   const userColor = getUserColor(user.email)
 
   return (
     <div className={styles.wrap}>
+      {selected && <ReceiptModal tx={selected} onClose={() => setSelected(null)} />}
+
       <div className={styles.hero}>
         <div className={styles.heroLeft}>
           <div className={styles.avatarArea}>
             <div className={styles.avatar} style={{background: 'white', border: `3px solid ${userColor}`}}>
               <svg width="32" height="32" viewBox="0 0 24 24" fill={userColor} style={{margin: 'auto'}}>
-                {/* Gas Cylinder Body */}
                 <rect x="6" y="4" width="12" height="16" rx="2" fill={userColor}/>
-                {/* Cylinder Top Valve */}
                 <rect x="10" y="2" width="4" height="4" rx="1" fill={userColor}/>
-                {/* Cylinder Handle */}
                 <rect x="9" y="0" width="6" height="3" rx="1" fill={userColor}/>
-                {/* Gas Flame Indicator */}
                 <circle cx="12" cy="10" r="2" fill="white" opacity="0.3"/>
-                {/* Cylinder Lines for Detail */}
                 <line x1="8" y1="8" x2="8" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
                 <line x1="16" y1="8" x2="16" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
               </svg>
             </div>
-            <div className={styles.username}>
-              @{user.username || 'user'}
-            </div>
+            <div className={styles.username}>@{user.username || 'user'}</div>
           </div>
           <div>
             <h1 className={styles.name}>{user.name}</h1>
@@ -114,20 +184,11 @@ export default function ProfilePage() {
       {/* Smoke Balance */}
       <div className={styles.smokeBalance}>
         <div className={styles.campfireBg}>
-          {/* Campfire flames background */}
           <div className={styles.flames}>
-            <div className={styles.flame}></div>
-            <div className={styles.flame}></div>
-            <div className={styles.flame}></div>
-            <div className={styles.flame}></div>
-            <div className={styles.flame}></div>
+            {[...Array(5)].map((_, i) => <div key={i} className={styles.flame}></div>)}
           </div>
           <div className={styles.smoke}>
-            <div className={styles.smokeParticle}></div>
-            <div className={styles.smokeParticle}></div>
-            <div className={styles.smokeParticle}></div>
-            <div className={styles.smokeParticle}></div>
-            <div className={styles.smokeParticle}></div>
+            {[...Array(5)].map((_, i) => <div key={i} className={styles.smokeParticle}></div>)}
           </div>
         </div>
         <div className={styles.smokeIcon}>
@@ -162,7 +223,6 @@ export default function ProfilePage() {
           <div className={styles.cardTitle}>
             My Cylinders <span className={styles.cardCount}>{cylinders.length}</span>
           </div>
-
           {cylinders.length === 0
             ? <div className={styles.cylEmpty}>No cylinders linked yet.</div>
             : cylinders.map((c: any) => (
@@ -180,7 +240,6 @@ export default function ProfilePage() {
                 </div>
               ))
           }
-
           {!linking ? (
             <button className={styles.linkBtn} onClick={() => { setLinking(true); setLinkErr(''); setLinkOk('') }}>
               + Link Another Cylinder
@@ -216,6 +275,7 @@ export default function ProfilePage() {
         <div className={styles.cardTitle}>
           Refill History <span className={styles.cardCount}>{transactions.length}</span>
         </div>
+        <div style={{ fontSize: 11, color: 'var(--inks)', marginBottom: 10 }}>Click any row to view receipt</div>
         {transactions.length === 0 ? (
           <div className={styles.emptyState}>No refills recorded yet.</div>
         ) : (
@@ -225,19 +285,39 @@ export default function ProfilePage() {
                 <tr><th>Date</th><th>Outlet</th><th>Amount Paid</th><th>Gas Received</th><th>Cylinder</th><th>Payment</th></tr>
               </thead>
               <tbody>
-                {transactions.map((t: any, i: number) => (
-                  <tr key={t.id} className={i % 2 ? styles.alt : ''}>
-                    <td>
-                      <div className={styles.txDate}>{fmtD(t.createdAt)}</div>
-                      <div className={styles.txTime}>{fmtT(t.createdAt)}</div>
-                    </td>
-                    <td className={styles.bold}>{t.outlet?.name}</td>
-                    <td className={styles.money}>{fmt(t.naira)}</td>
-                    <td className={styles.mono}>{fmtKg(t.kg)}</td>
-                    <td className={styles.cylId}>{t.cylinderId ?? '—'}</td>
-                    <td><span className={styles.payBadge}>{t.paymentMethod?.replace('_', ' ')}</span></td>
-                  </tr>
-                ))}
+                {transactions.map((t: any, i: number) => {
+                  const smokeUsed = t.smokeUsed ?? 0
+                  return (
+                    <tr
+                      key={t.id}
+                      className={i % 2 ? styles.alt : ''}
+                      onClick={() => setSelected(t)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <td>
+                        <div className={styles.txDate}>{fmtD(t.createdAt)}</div>
+                        <div className={styles.txTime}>{fmtT(t.createdAt)}</div>
+                      </td>
+                      <td className={styles.bold}>{t.outlet?.name}</td>
+                      <td className={styles.money}>
+                        {fmt(t.naira)}
+                        {smokeUsed > 0 && (
+                          <span style={{
+                            marginLeft: 5, fontSize: 10,
+                            background: 'rgba(255,140,0,0.12)',
+                            color: '#FF8C00', padding: '1px 5px',
+                            borderRadius: 6, fontWeight: 700,
+                          }}>
+                            🔥 -{smokeUsed}
+                          </span>
+                        )}
+                      </td>
+                      <td className={styles.mono}>{fmtKg(t.kg)}</td>
+                      <td className={styles.cylId}>{t.cylinderId ?? '—'}</td>
+                      <td><span className={styles.payBadge}>{t.paymentMethod?.replace('_', ' ')}</span></td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

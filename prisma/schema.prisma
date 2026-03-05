@@ -9,22 +9,22 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  email         String        @unique
-  name          String
-  phone         String?
-  password      String?
-  googleId      String?       @unique
-  avatarUrl     String?
-  role          String
-  outletId      Int?
-  smokeBalance  Int           @default(0)
-  useSmokeBalance Boolean      @default(false)
-  outlet        Outlet?       @relation(fields: [outletId], references: [id])
-  cylinders     Cylinder[]
-  tankRefills   TankRefill[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id              String        @id @default(cuid())
+  email           String        @unique
+  name            String
+  phone           String?
+  password        String?
+  googleId        String?       @unique
+  avatarUrl       String?
+  role            String
+  outletId        Int?
+  smokeBalance    Int           @default(0)
+  useSmokeBalance Boolean       @default(false)
+  outlet          Outlet?       @relation(fields: [outletId], references: [id])
+  cylinders       Cylinder[]
+  tankRefills     TankRefill[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model Outlet {
@@ -78,6 +78,7 @@ model Transaction {
   paymentMethod String
   staffId       String?
   isAnonymous   Boolean       @default(false)
+  smokeUsed     Int           @default(0)
   createdAt     DateTime      @default(now())
 }
 
