@@ -17,7 +17,7 @@ function ReceiptModal({ tx, onClose }: { tx: any; onClose: () => void }) {
     >
       <div
         style={{
-          background: '#ffffff', borderRadius: 16, padding: 28,
+          background: 'var(--card)', borderRadius: 16, padding: 28,
           width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         }}
         onClick={e => e.stopPropagation()}
@@ -205,41 +205,17 @@ export default function ProfilePage() {
       <div className={styles.grid}>
         <div className={styles.card}>
           <div className={styles.cardTitle}>Monthly Spend</div>
-          <div style={{ padding: "8px 0 4px" }}>
-            {(() => {
-              const W = 320, H = 100, pad = 24
-              const vals = (monthlySpend ?? []).map((m: any) => m.value)
-              const max = Math.max(...vals, 1)
-              const pts = vals.map((v: number, i: number) => ({
-                x: pad + (i / (vals.length - 1)) * (W - pad * 2),
-                y: H - pad - ((v / max) * (H - pad * 2)),
-                v
-              }))
-              const polyline = pts.map((p: any) => `${p.x},${p.y}`).join(" ")
-              const area = `${pts[0].x},${H - pad} ` + pts.map((p: any) => `${p.x},${p.y}`).join(" ") + ` ${pts[pts.length-1].x},${H - pad}`
-              return (
-                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 120, overflow: "visible" }}>
-                  <defs>
-                    <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#2d7a3a" stopOpacity={0.18}/>
-                      <stop offset="100%" stopColor="#2d7a3a" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  {[0.25, 0.5, 0.75, 1].map((t: number) => (
-                    <line key={t} x1={pad} x2={W - pad} y1={H - pad - t * (H - pad * 2)} y2={H - pad - t * (H - pad * 2)} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4,4"/>
-                  ))}
-                  <polygon points={area} fill="url(#lineGrad)"/>
-                  <polyline points={polyline} fill="none" stroke="#2d7a3a" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
-                  {pts.map((p: any, i: number) => (
-                    <g key={i}>
-                      <circle cx={p.x} cy={p.y} r="4" fill="#2d7a3a" stroke="white" strokeWidth="2"/>
-                      {p.v > 0 && <text x={p.x} y={p.y - 10} textAnchor="middle" fontSize="9" fill="#2d7a3a" fontWeight="700">&#8358;{Math.round(p.v / 1000)}k</text>}
-                      <text x={p.x} y={H - 6} textAnchor="middle" fontSize="10" fill="#6b7280">{(monthlySpend ?? [])[i]?.label}</text>
-                    </g>
-                  ))}
-                </svg>
-              )
-            })()}
+          <div className={styles.chartOuter}>
+            <div className={styles.chart}>
+              {(monthlySpend ?? []).map((m: any, i: number) => (
+                <div key={i} className={styles.chartCol}>
+                  {m.value > 0 && <div className={styles.barLabel}>₦{Math.round(m.value / 1000)}k</div>}
+                  <div className={`${styles.bar} ${i === 5 ? styles.barActive : ''}`}
+                    style={{ height: m.value > 0 ? `${(m.value / maxMonth) * 100}%` : '3%', minHeight: 4 }} />
+                  <div className={styles.barLbl}>{m.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -350,5 +326,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-
-
