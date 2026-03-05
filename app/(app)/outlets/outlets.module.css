@@ -84,4 +84,21 @@
 .bold{font-weight:700;}
 .muted{color:var(--inks);font-size:12px;}
 .roleBadge{background:var(--surf);border:1px solid var(--bdr);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;color:var(--inks);}
+.editBtn{padding:4px 10px;background:var(--bl);color:white;border:none;border-radius:var(--r-sm);font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;min-height:32px;}
+.editBtn:hover{background:#1557b0;}
 .empty{padding:30px;text-align:center;color:var(--inkx);font-size:13px;}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .editBtn {
+    padding:6px 12px !important;
+    font-size:11px !important;
+    min-height:36px !important;
+  }
+  
+  .tbl th,
+  .tbl td {
+    padding:6px 8px !important;
+    font-size:11px !important;
+  }
+}

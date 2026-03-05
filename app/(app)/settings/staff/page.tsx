@@ -93,8 +93,8 @@ export default function StaffPage() {
         outletId: ''
       })
 
-      // Show success message
-      alert(editingStaff ? 'Staff member updated successfully!' : 'Staff member added successfully!')
+      // Show appropriate message based on response
+      alert(data.message || (editingStaff ? 'Staff member updated successfully!' : 'Staff member added successfully!'))
     } catch (error) {
       console.error('Error saving staff member:', error)
       alert(error instanceof Error ? error.message : 'Failed to save staff member')

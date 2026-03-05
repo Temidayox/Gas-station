@@ -86,9 +86,40 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Staff ID required' }, { status: 400 })
   }
 
+  // Get current staff member to check if email is changing
+  const currentStaff = await prisma.user.findUnique({
+    where: { id }
+  })
+
+  if (!currentStaff) {
+    return NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
+  }
+
   const updateData: any = {}
-  if (email) updateData.email = email.toLowerCase().trim()
+  
+  // Handle email change with validation
+  if (email && email !== currentStaff.email) {
+    const newEmail = email.toLowerCase().trim()
+    
+    // Check if new email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: newEmail }
+    })
+
+    if (existingUser) {
+      return NextResponse.json({ error: 'User with this email already exists' }, { status: 409 })
+    }
+    
+    updateData.email = newEmail
+    
+    // Clear googleId so user will need to re-authenticate with new email
+    // This ensures Google OAuth sync with the new email
+    updateData.googleId = null
+    updateData.avatarUrl = null
+  }
+  
   if (name) updateData.name = name.trim()
+  
   if (role) {
     if (!['OUTLET_STAFF', 'ADMIN'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
@@ -97,12 +128,28 @@ export async function PUT(req: NextRequest) {
     updateData.outletId = role === 'OUTLET_STAFF' ? (outletId ? parseInt(String(outletId)) : null) : null
   }
 
-  const updatedStaff = await prisma.user.update({
-    where: { id },
-    data: updateData,
-  })
+  try {
+    const updatedStaff = await prisma.user.update({
+      where: { id },
+      data: updateData,
+    })
 
-  return NextResponse.json({ success: true, staff: updatedStaff })
+    // If email was changed, the user will need to sign out and sign back in
+    // with their new Google account to sync everything properly
+    const response = { 
+      success: true, 
+      staff: updatedStaff,
+      emailChanged: email && email !== currentStaff.email,
+      message: email && email !== currentStaff.email 
+        ? 'Email updated! The user will need to sign out and sign back in with their new Google account.'
+        : 'Staff member updated successfully!'
+    }
+
+    return NextResponse.json(response)
+  } catch (error) {
+    console.error('Error updating staff member:', error)
+    return NextResponse.json({ error: 'Failed to update staff member' }, { status: 500 })
+  }
 }
 
 // DELETE - Remove staff member

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { fmt, fmtKg } from '@/lib/utils'
+import { getSession } from 'next-auth/react'
 import styles from './outlets.module.css'
 
 export default function OutletsPage() {
@@ -8,6 +9,15 @@ export default function OutletsPage() {
   const [loading, setLoading]     = useState(true)
   const [selected, setSelected]   = useState<any>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [session, setSession]     = useState<any>(null)
+  const [editingStaff, setEditingStaff] = useState<any>(null)
+  const [showStaffEdit, setShowStaffEdit] = useState(false)
+  const [staffForm, setStaffForm] = useState({
+    email: '',
+    name: '',
+    role: 'OUTLET_STAFF' as 'ADMIN' | 'OUTLET_STAFF',
+    outletId: ''
+  })
 
   const [form, setForm] = useState({ name: '', location: '', dailyTarget: '400000', tankCapacityKg: '2000' })
   const [creating, setCreating]   = useState(false)
@@ -26,7 +36,14 @@ export default function OutletsPage() {
     finally { setLoading(false) }
   }, [selected?.id])
 
-  useEffect(() => { fetchOutlets() }, [])
+  useEffect(() => { 
+    const loadSession = async () => {
+      const sessionData = await getSession()
+      setSession(sessionData)
+    }
+    loadSession()
+    fetchOutlets() 
+  }, [])
 
   async function createOutlet() {
     if (!form.name.trim() || !form.location.trim()) { setCreateErr('Name and location are required'); return }
@@ -45,6 +62,57 @@ export default function OutletsPage() {
       } else { setCreateErr(d.error ?? 'Failed to create outlet') }
     } catch { setCreateErr('Network error') }
     finally { setCreating(false) }
+  }
+
+  async function handleStaffEdit(e: React.FormEvent) {
+    e.preventDefault()
+    
+    try {
+      const res = await fetch('/api/admin/staff', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...staffForm,
+          id: editingStaff.id
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update staff member')
+      }
+
+      // Refresh outlets data to get updated staff
+      await fetchOutlets()
+      
+      // Reset form
+      setShowStaffEdit(false)
+      setEditingStaff(null)
+      setStaffForm({
+        email: '',
+        name: '',
+        role: 'OUTLET_STAFF',
+        outletId: ''
+      })
+
+      // Show appropriate message based on whether email was changed
+      alert(data.message || 'Staff member updated successfully!')
+    } catch (error) {
+      console.error('Error updating staff member:', error)
+      alert(error instanceof Error ? error.message : 'Failed to update staff member')
+    }
+  }
+
+  function editStaffMember(staffMember: any) {
+    setEditingStaff(staffMember)
+    setStaffForm({
+      email: staffMember.email,
+      name: staffMember.name,
+      role: staffMember.role,
+      outletId: staffMember.outletId?.toString() || ''
+    })
+    setShowStaffEdit(true)
   }
 
   if (loading) return <div className={styles.loading}><div className="spinner" /></div>
@@ -138,13 +206,23 @@ export default function OutletsPage() {
           {(o.staff??[]).length === 0
             ? <div className={styles.empty}>No staff assigned yet.</div>
             : <table className={styles.tbl}>
-                <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th>{session?.user?.role === 'ADMIN' && <th>Actions</th>}</tr></thead>
                 <tbody>
                   {(o.staff??[]).map((s: any, i: number) => (
                     <tr key={s.id} className={i%2?styles.alt:''}>
                       <td className={styles.bold}>{s.name}</td>
                       <td className={styles.muted}>{s.email}</td>
                       <td><span className={styles.roleBadge}>{s.role.replace('_',' ')}</span></td>
+                      {session?.user?.role === 'ADMIN' && (
+                        <td>
+                          <button 
+                            className={styles.editBtn}
+                            onClick={() => editStaffMember(s)}
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -218,6 +296,90 @@ export default function OutletsPage() {
           </div>
         </div>
       )}
+      
+      {showStaffEdit && (
+        <div className={styles.createCard}>
+          <div className={styles.createHead}>
+            <span>Edit Staff Member</span>
+            <button className={styles.closeBtn} onClick={() => { 
+              setShowStaffEdit(false)
+              setEditingStaff(null)
+              setStaffForm({
+                email: '',
+                name: '',
+                role: 'OUTLET_STAFF',
+                outletId: ''
+              })
+            }}>×</button>
+          </div>
+          <form onSubmit={handleStaffEdit} className={styles.createGrid}>
+            <div className={styles.createField}>
+              <label>Email Address</label>
+              <input 
+                className={styles.createInp} 
+                type="email"
+                placeholder="staff@gmail.com" 
+                value={staffForm.email} 
+                onChange={e => setStaffForm(f => ({...f, email: e.target.value}))} 
+                required
+              />
+            </div>
+            <div className={styles.createField}>
+              <label>Full Name</label>
+              <input 
+                className={styles.createInp} 
+                placeholder="John Doe" 
+                value={staffForm.name} 
+                onChange={e => setStaffForm(f => ({...f, name: e.target.value}))} 
+                required
+              />
+            </div>
+            <div className={styles.createField}>
+              <label>Role</label>
+              <select
+                className={styles.createInp}
+                value={staffForm.role}
+                onChange={e => setStaffForm(f => ({...f, role: e.target.value as 'ADMIN' | 'OUTLET_STAFF'}))}
+              >
+                <option value="OUTLET_STAFF">Outlet Staff</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </div>
+            {staffForm.role === 'OUTLET_STAFF' && (
+              <div className={styles.createField}>
+                <label>Assigned Outlet</label>
+                <select
+                  className={styles.createInp}
+                  value={staffForm.outletId}
+                  onChange={e => setStaffForm(f => ({...f, outletId: e.target.value}))}
+                  required
+                >
+                  <option value="">Select Outlet</option>
+                  {outlets.map(outlet => (
+                    <option key={outlet.id} value={outlet.id.toString()}>
+                      {outlet.name} - {outlet.location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </form>
+          <div className={styles.createBtns}>
+            <button className={styles.createSubmit} onClick={handleStaffEdit}>Update Staff Member</button>
+            <button className={styles.createCancel} onClick={() => { 
+              setShowStaffEdit(false)
+              setEditingStaff(null)
+              setStaffForm({
+                email: '',
+                name: '',
+                role: 'OUTLET_STAFF',
+                outletId: ''
+              })
+            }}>Cancel</button>
+          </div>
+        </div>
+      )}
+      
       <div className={styles.grid}>
         {outlets.map(o => {
           const tankLow  = o.tankPct < 20
