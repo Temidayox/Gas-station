@@ -28,15 +28,15 @@ export default function POSPage() {
   const [submitErr, setSubmitErr]   = useState('')
   const [todayCount, setTodayCount] = useState(0)
   const [todayRev, setTodayRev]     = useState(0)
+
+  // Smoke balance state
+  const [smokeBalance, setSmokeBalance] = useState(0)
+  const [useSmoke, setUseSmoke]         = useState(false)
+
   const lookupTimer = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     fetch('/api/price').then(r => r.json()).then(d => setPricePerKg(d.pricePerKg))
-    fetch('/api/transactions?days=1&limit=1').then(r => r.json()).then((txs: any[]) => {
-      if (!Array.isArray(txs)) return
-      // totals come from outlet-specific data
-    })
-    // Listen for price updates
     const pusher = getPusherClient()
     if (!pusher) return
     const ch = pusher.subscribe(CHANNELS.PUBLIC)
@@ -50,13 +50,21 @@ export default function POSPage() {
     return () => { try { ch.unbind_all(); pusher.unsubscribe(CHANNELS.PUBLIC) } catch {} }
   }, [user?.outletId])
 
-  const nairaNum = parseFloat(naira) || 0
-  const kg = nairaNum > 0 ? nairaNum / pricePerKg : 0
-  const kgDisplay = kg.toFixed(2)
+  const nairaNum   = parseFloat(naira) || 0
+  const kg         = nairaNum > 0 ? nairaNum / pricePerKg : 0
+  const kgDisplay  = kg.toFixed(2)
+
+  // Smoke discount calculations
+  const smokeDiscount  = useSmoke ? Math.min(smokeBalance, nairaNum) : 0
+  const nairaAfterSmoke = Math.max(0, nairaNum - smokeDiscount)
 
   // Debounced cylinder lookup
   async function lookupCylinder(id: string) {
-    setCustId(id); setCustName(''); setCustErr('')
+    setCustId(id)
+    setCustName('')
+    setCustErr('')
+    setSmokeBalance(0)
+    setUseSmoke(false)
     if (lookupTimer.current) clearTimeout(lookupTimer.current)
     if (!id || id.length < 4) return
     setLookingUp(true)
@@ -66,9 +74,11 @@ export default function POSPage() {
         if (res.ok) {
           const cyl = await res.json()
           setCustName(cyl.ownerName ?? 'Registered Customer')
+          setSmokeBalance(cyl.smokeBalance ?? 0)
           setCustErr('')
         } else {
-          setCustErr('Cylinder not found — sale will be walk-in')
+          setCustErr('Cylinder not found – sale will be walk-in')
+          setSmokeBalance(0)
         }
       } catch {
         setCustErr('Lookup failed')
@@ -85,23 +95,26 @@ export default function POSPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          naira: nairaNum, cylinderSize: parseFloat(cylSize),
-          paymentMethod: payment, cylinderId: custId?.trim() || null,
+          naira: nairaNum,
+          cylinderSize: parseFloat(cylSize),
+          paymentMethod: payment,
+          cylinderId: custId?.trim() || null,
+          useSmoke,
         }),
       })
       if (res.ok) {
         const tx = await res.json()
         setLastTx(tx)
         setTodayCount(c => c + 1)
-        setTodayRev(r => r + nairaNum)
+        setTodayRev(r => r + (tx.nairaCharged ?? nairaNum))
         setStep('success')
       } else {
         const d = await res.json()
-        setSubmitErr(d.error ?? 'Transaction failed — please try again')
+        setSubmitErr(d.error ?? 'Transaction failed – please try again')
         setStep('entry')
       }
     } catch {
-      setSubmitErr('Network error — check your connection')
+      setSubmitErr('Network error – check your connection')
       setStep('entry')
     } finally {
       setSubmitting(false)
@@ -111,6 +124,7 @@ export default function POSPage() {
   function reset() {
     setNaira(''); setCylSize('12.5'); setPayment('CASH')
     setCustId(''); setCustName(''); setCustErr(''); setSubmitErr('')
+    setSmokeBalance(0); setUseSmoke(false)
     setStep('entry'); setLastTx(null)
   }
 
@@ -129,7 +143,11 @@ export default function POSPage() {
         <div className={styles.receipt}>
           {([
             ['TX ID',          lastTx?.id?.slice(0,16).toUpperCase()],
-            ['Amount Paid',    fmt(lastTx?.naira)],
+            ['Total Bill',     fmt(lastTx?.totalNaira ?? lastTx?.naira)],
+            ...(lastTx?.smokeUsed > 0 ? [
+              ['🔥 Smoke Used',  `${lastTx.smokeUsed} Smoke (₦${lastTx.smokeUsed})`],
+              ['Naira Charged', fmt(lastTx?.nairaCharged)],
+            ] : []),
             ['Gas Dispensed',  fmtKg(lastTx?.kg)],
             ['Rate Used',      `${fmt(pricePerKg)}/kg`],
             ['Cylinder Size',  `${lastTx?.cylinderSize} kg`],
@@ -156,7 +174,7 @@ export default function POSPage() {
         <div>
           <h1 className={styles.title}>POS Terminal</h1>
           <div className={styles.sub}>
-            Outlet {user?.outletId ?? '—'} 
+            Outlet {user?.outletId ?? '–'}
             <span className={styles.subDot}>·</span>
             <span className={styles.liveRate}>{fmt(pricePerKg)}/kg</span>
             <span className={styles.subDot}>·</span>
@@ -258,6 +276,78 @@ export default function POSPage() {
             )}
           </div>
 
+          {/* Smoke Balance Toggle — only shown if customer has smoke */}
+          {custName && smokeBalance > 0 && nairaNum > 0 && (
+            <div className={styles.formSection}>
+              <div style={{
+                background: useSmoke ? 'rgba(255,140,0,0.08)' : 'var(--bg2)',
+                border: `1.5px solid ${useSmoke ? '#FF8C00' : 'var(--bdr)'}`,
+                borderRadius: 12,
+                padding: '14px 16px',
+                transition: 'all 0.2s',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: useSmoke ? 10 : 0 }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#FF8C00', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      🔥 Smoke Balance: {smokeBalance.toLocaleString()} Smoke
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--inks)', marginTop: 2 }}>
+                      Worth ₦{smokeBalance.toLocaleString()} in discounts
+                    </div>
+                  </div>
+                  {/* Toggle switch */}
+                  <button
+                    onClick={() => setUseSmoke(v => !v)}
+                    style={{
+                      width: 44, height: 24,
+                      borderRadius: 12,
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: useSmoke ? '#FF8C00' : 'var(--bdr)',
+                      position: 'relative',
+                      transition: 'background 0.2s',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span style={{
+                      position: 'absolute',
+                      top: 3, left: useSmoke ? 23 : 3,
+                      width: 18, height: 18,
+                      borderRadius: '50%',
+                      background: 'white',
+                      transition: 'left 0.2s',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    }} />
+                  </button>
+                </div>
+
+                {useSmoke && (
+                  <div style={{ borderTop: '1px solid rgba(255,140,0,0.2)', paddingTop: 10 }} className="fade-in">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                      <span style={{ color: 'var(--inks)' }}>Total bill</span>
+                      <span style={{ fontWeight: 600 }}>{fmt(nairaNum)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                      <span style={{ color: '#FF8C00' }}>🔥 Smoke discount</span>
+                      <span style={{ fontWeight: 700, color: '#FF8C00' }}>− {fmt(smokeDiscount)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid rgba(255,140,0,0.2)', paddingTop: 6, marginTop: 4 }}>
+                      <span style={{ fontWeight: 700 }}>Naira to collect</span>
+                      <span style={{ fontWeight: 800, color: nairaAfterSmoke === 0 ? 'var(--g)' : 'var(--ink)', fontSize: 15 }}>
+                        {nairaAfterSmoke === 0 ? '✓ FREE' : fmt(nairaAfterSmoke)}
+                      </span>
+                    </div>
+                    {nairaAfterSmoke === 0 && (
+                      <div style={{ fontSize: 11, color: 'var(--g)', marginTop: 6, textAlign: 'center' }}>
+                        Fully covered by Smoke balance!
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <button
             className={styles.reviewBtn}
             disabled={nairaNum < 100}
@@ -280,6 +370,10 @@ export default function POSPage() {
                   ['Cylinder', `${cylSize} kg`],
                   ['Payment',  payment === 'POS_TERMINAL' ? 'POS Card' : payment === 'TRANSFER' ? 'Bank Transfer' : 'Cash'],
                   ['Customer', custName || 'Walk-in'],
+                  ...(useSmoke && smokeDiscount > 0 ? [
+                    ['🔥 Smoke Off', `− ${fmt(smokeDiscount)}`],
+                    ['Collect',     nairaAfterSmoke === 0 ? '₦0 (FREE)' : fmt(nairaAfterSmoke)],
+                  ] : []),
                 ].map(([l,v]) => (
                   <div key={l} className={styles.previewRow}>
                     <span className={styles.previewRowLabel}>{l}</span>
@@ -302,7 +396,10 @@ export default function POSPage() {
                 Confirm Sale
               </div>
               <p className={styles.confirmText}>
-                Dispense <strong>{fmtKg(kg)}</strong> for <strong>{fmt(nairaNum)}</strong> via <strong>{payment.replace('_',' ')}</strong>?
+                Dispense <strong>{fmtKg(kg)}</strong> for <strong>{fmt(nairaNum)}</strong>
+                {useSmoke && smokeDiscount > 0 && (
+                  <> · <span style={{color:'#FF8C00'}}>🔥 {smokeDiscount} Smoke used</span> · Collect <strong>{nairaAfterSmoke === 0 ? '₦0' : fmt(nairaAfterSmoke)}</strong></>
+                )}
                 {custName && <> · Customer: <strong>{custName}</strong></>}
               </p>
               <div className={styles.confirmBtns}>

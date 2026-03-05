@@ -35,49 +35,70 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(transactions)
 }
 
-// POST /api/transactions — record a new sale
+// POST /api/transactions – record a new sale
 export async function POST(req: NextRequest) {
   const user = await getSessionUser(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Accept ADMIN or OUTLET_STAFF
   if (user.role !== 'OUTLET_STAFF' && user.role !== 'ADMIN')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  // outletId may come as string from JWT — always parse it
   const outletId = user.outletId ? parseInt(String(user.outletId)) : null
   if (!outletId || isNaN(outletId))
     return NextResponse.json({ error: 'No outlet assigned to your account' }, { status: 400 })
 
   const body = await req.json()
-  const { naira, cylinderSize, paymentMethod, cylinderId } = body
+  const { naira, cylinderSize, paymentMethod, cylinderId, useSmoke } = body
 
   if (!naira || !cylinderSize || !paymentMethod)
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   if (isNaN(parseFloat(naira)) || parseFloat(naira) <= 0)
     return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
 
+  const totalNaira = parseFloat(naira)
+
   const rate = await prisma.priceRate.findFirst({ orderBy: { createdAt: 'desc' } })
   const pricePerKg = rate?.pricePerKg ?? 1150
-  const kg = parseFloat((parseFloat(naira) / pricePerKg).toFixed(3))
+  const kg = parseFloat((totalNaira / pricePerKg).toFixed(3))
 
   // Validate cylinder if provided
   const cleanCylId = cylinderId?.trim().toUpperCase().replace(/-/g, '') || null
+  let smokeUsed = 0
+  let nairaCharged = totalNaira
+  let cylinderOwnerId: string | null = null
+
   if (cleanCylId) {
-    const cyl = await prisma.cylinder.findUnique({ where: { id: cleanCylId } })
+    const cyl = await prisma.cylinder.findUnique({
+      where: { id: cleanCylId },
+      include: {
+        owner: { select: { id: true, smokeBalance: true } },
+      },
+    })
     if (!cyl) return NextResponse.json({ error: 'Cylinder ID not found' }, { status: 404 })
-    // First fill — record cylinder size from the sale
+
+    // First fill – record cylinder size
     if (cyl.size === 0 && cylinderSize) {
-      await prisma.cylinder.update({ where: { id: cleanCylId }, data: { size: parseFloat(String(cylinderSize)) } })
+      await prisma.cylinder.update({
+        where: { id: cleanCylId },
+        data: { size: parseFloat(String(cylinderSize)) },
+      })
+    }
+
+    cylinderOwnerId = cyl.ownerId ?? null
+
+    // Apply smoke balance discount (1 smoke = ₦1)
+    if (useSmoke && cyl.owner && cyl.owner.smokeBalance > 0) {
+      smokeUsed = Math.min(cyl.owner.smokeBalance, totalNaira)
+      nairaCharged = Math.max(0, totalNaira - smokeUsed)
     }
   }
 
-  // Create transaction and update tank atomically to prevent race conditions
+  // Create transaction and update tank atomically
   const [tx] = await prisma.$transaction([
     prisma.transaction.create({
       data: {
         outletId,
-        naira: parseFloat(naira),
+        naira: nairaCharged,       // actual naira collected
         kg,
         cylinderSize: parseFloat(String(cylinderSize)),
         paymentMethod,
@@ -87,42 +108,39 @@ export async function POST(req: NextRequest) {
       },
       include: {
         outlet: { select: { name: true } },
-        cylinder: { 
-          select: { 
+        cylinder: {
+          select: {
             owner: { select: { id: true, name: true } },
-            ownerId: true
-          } 
+            ownerId: true,
+          },
         },
       },
     }),
-    // Update tank level atomically
     prisma.outlet.update({
-      where: { 
-        id: outletId,
-        // Ensure tank has enough gas
-        tankCurrentKg: { gte: kg }
-      },
+      where: { id: outletId, tankCurrentKg: { gte: kg } },
       data: { tankCurrentKg: { decrement: kg } },
     }),
   ])
 
-  // Allocate Smoke to cylinder owner (20 Smoke per 1000 naira)
-  if (tx.cylinder?.ownerId) {
-    const smokeEarned = Math.floor((parseFloat(naira) / 1000) * 20)
+  // Deduct smoke balance if used
+  if (smokeUsed > 0 && cylinderOwnerId) {
+    await prisma.user.update({
+      where: { id: cylinderOwnerId },
+      data: { smokeBalance: { decrement: smokeUsed } },
+    })
+  }
+
+  // Earn smoke on naira paid (20 smoke per ₦1000) — only on naira portion
+  if (cylinderOwnerId && nairaCharged > 0) {
+    const smokeEarned = Math.floor((nairaCharged / 1000) * 20)
     if (smokeEarned > 0) {
       try {
         await prisma.user.update({
-          where: { id: tx.cylinder.ownerId },
-          data: { smokeBalance: { increment: smokeEarned } }
+          where: { id: cylinderOwnerId },
+          data: { smokeBalance: { increment: smokeEarned } },
         })
-        console.log(`✅ Allocated ${smokeEarned} Smoke to user ${tx.cylinder.ownerId}`)
       } catch (error: any) {
-        // If smokeBalance field doesn't exist yet, log but don't fail
-        if (error.message?.includes('smokeBalance') || error.message?.includes('column')) {
-          console.log(`⏳ Smoke allocation pending migration: ${smokeEarned} Smoke for user ${tx.cylinder.ownerId}`)
-        } else {
-          throw error
-        }
+        console.log(`Smoke earn pending: ${smokeEarned} for user ${cylinderOwnerId}`)
       }
     }
   }
@@ -134,5 +152,10 @@ export async function POST(req: NextRequest) {
     console.error('Pusher trigger failed:', e)
   }
 
-  return NextResponse.json(tx, { status: 201 })
+  return NextResponse.json({
+    ...tx,
+    totalNaira,       // original bill
+    smokeUsed,        // discount applied
+    nairaCharged,     // what was actually paid
+  }, { status: 201 })
 }
