@@ -31,10 +31,11 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (session?.user) {
-      setUser(session.user)
-      setUsername(session.user.username || '')
+      const user = session.user as any
+      setUser(user)
+      setUsername(user.username || '')
       
-      if (session.user.role === 'ADMIN') {
+      if (user.role === 'ADMIN') {
         // Load admin settings
         fetch('/api/price').then(r => r.json()).then(d => {
           setCurrent(d.pricePerKg); setPrice(String(d.pricePerKg))
