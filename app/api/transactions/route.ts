@@ -122,26 +122,24 @@ export async function POST(req: NextRequest) {
     }),
   ])
 
-  // Deduct smoke balance if used
-  if (smokeUsed > 0 && cylinderOwnerId) {
-    await prisma.user.update({
-      where: { id: cylinderOwnerId },
-      data: { smokeBalance: { decrement: smokeUsed } },
-    })
-  }
+  // Update smoke balance atomically in one operation
+  // Final balance = currentBalance - smokeUsed + smokeEarned
+  if (cylinderOwnerId && (smokeUsed > 0 || nairaCharged > 0)) {
+    const smokeEarned = nairaCharged > 0 ? Math.floor((nairaCharged / 1000) * 20) : 0
 
-  // Earn smoke on naira paid (20 smoke per ₦1000) — only on naira portion
-  if (cylinderOwnerId && nairaCharged > 0) {
-    const smokeEarned = Math.floor((nairaCharged / 1000) * 20)
-    if (smokeEarned > 0) {
-      try {
-        await prisma.user.update({
-          where: { id: cylinderOwnerId },
-          data: { smokeBalance: { increment: smokeEarned } },
-        })
-      } catch (error: any) {
-        console.log(`Smoke earn pending: ${smokeEarned} for user ${cylinderOwnerId}`)
-      }
+    // Fetch current balance fresh to avoid stale data
+    const freshUser = await prisma.user.findUnique({
+      where: { id: cylinderOwnerId },
+      select: { smokeBalance: true },
+    })
+
+    if (freshUser) {
+      const newBalance = Math.max(0, freshUser.smokeBalance - smokeUsed + smokeEarned)
+      await prisma.user.update({
+        where: { id: cylinderOwnerId },
+        data: { smokeBalance: newBalance },
+      })
+      console.log(`Smoke: balance was ${freshUser.smokeBalance}, used ${smokeUsed}, earned ${smokeEarned}, new balance ${newBalance}`)
     }
   }
 
