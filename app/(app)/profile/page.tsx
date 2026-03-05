@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [linkLoading, setLinkLoading] = useState(false)
   const [linkErr, setLinkErr]       = useState('')
   const [linkOk, setLinkOk]         = useState('')
+  const [showHistory, setShowHistory] = useState(false)
 
   // Generate random color for user
   const getUserColor = (email: string) => {
@@ -108,20 +109,28 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+        <div className={styles.heroRight}>
+          <button className={styles.historyBtn} onClick={() => setShowHistory(true)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v6m0 4v6m0-4l-2-2m2 2l2-2M3 12h6m4 0h6m-4 0l2-2m-2 2l-2-2"/>
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            History
+          </button>
+        </div>
       </div>
 
-      <div className={`${styles.kpiRow} stagger`}>
-        {[
-          { label: 'Total Spent',      value: fmt(stats.totalSpend) },
-          { label: 'Gas Purchased',    value: `${(stats.totalKg || 0).toFixed(1)} kg` },
-          { label: 'Total Refills',    value: stats.refillCount },
-          { label: 'Favourite Outlet', value: stats.favOutlet || '—' },
-        ].map(({ label, value }, i) => (
-          <div key={label} className={`${styles.kpi} fade-up`} style={{ animationDelay: `${i * 60}ms` }}>
-            <div className={styles.kpiLabel}>{label}</div>
-            <div className={styles.kpiVal}>{value}</div>
-          </div>
-        ))}
+      {/* Smoke Balance */}
+      <div className={styles.smokeBalance}>
+        <div className={styles.smokeIcon}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 15c-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V7c0-1.1.9-2 2-2s2 .9 2 2v2.17c1.16.42 2 1.52 2 2.83 0 1.66-1.34 3-3 3zm10 0c-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V7c0-1.1.9-2 2-2s2 .9 2 2v2.17c1.16.42 2 1.52 2 2.83 0 1.66-1.34 3-3 3z"/>
+          </svg>
+        </div>
+        <div className={styles.smokeInfo}>
+          <div className={styles.smokeLabel}>Smoke Balance</div>
+          <div className={styles.smokeAmount}>{user.smokeBalance || 0}</div>
+        </div>
       </div>
 
       <div className={styles.grid}>
@@ -226,6 +235,36 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* History Modal */}
+      {showHistory && (
+        <div className={styles.modalOverlay} onClick={() => setShowHistory(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Purchase History</h2>
+              <button className={styles.modalClose} onClick={() => setShowHistory(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className={styles.historyStats}>
+              {[
+                { label: 'Total Spent', value: fmt(stats.totalSpend) },
+                { label: 'Gas Purchased', value: `${(stats.totalKg || 0).toFixed(1)} kg` },
+                { label: 'Total Refills', value: stats.refillCount },
+                { label: 'Favourite Outlet', value: stats.favOutlet || '—' },
+              ].map(({ label, value }) => (
+                <div key={label} className={styles.historyStat}>
+                  <div className={styles.historyStatLabel}>{label}</div>
+                  <div className={styles.historyStatValue}>{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
