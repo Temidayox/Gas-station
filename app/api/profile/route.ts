@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       id: true,
       name: true,
       email: true,
-      phone: true,
+      phone: true, smokeBalance: true, useSmokeBalance: true,
       cylinders: {
         include: {
           transactions: {
