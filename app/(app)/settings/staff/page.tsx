@@ -63,13 +63,19 @@ export default function StaffPage() {
       ? { ...formData, id: editingStaff.id }
       : formData
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
 
-    if (res.ok) {
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save staff member')
+      }
+
       // Reload staff list
       const staffRes = await fetch('/api/admin/staff')
       if (staffRes.ok) {
@@ -86,18 +92,34 @@ export default function StaffPage() {
         role: 'OUTLET_STAFF',
         outletId: ''
       })
+
+      // Show success message
+      alert(editingStaff ? 'Staff member updated successfully!' : 'Staff member added successfully!')
+    } catch (error) {
+      console.error('Error saving staff member:', error)
+      alert(error instanceof Error ? error.message : 'Failed to save staff member')
     }
   }
 
   async function handleDelete(staffId: string) {
     if (!confirm('Are you sure you want to remove this staff member?')) return
 
-    const res = await fetch(`/api/admin/staff?id=${staffId}`, {
-      method: 'DELETE'
-    })
+    try {
+      const res = await fetch(`/api/admin/staff?id=${staffId}`, {
+        method: 'DELETE'
+      })
 
-    if (res.ok) {
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete staff member')
+      }
+
       setStaff(staff.filter(s => s.id !== staffId))
+      alert('Staff member removed successfully!')
+    } catch (error) {
+      console.error('Error deleting staff member:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete staff member')
     }
   }
 
@@ -218,23 +240,25 @@ export default function StaffPage() {
 
       <div className={styles.staffGrid}>
         {staff.map(staffMember => (
-          <div key={staffMember.id} className={styles.staffCard}>
+          <div key={staffMember.id} className={`${styles.staffCard} ${editingStaff?.id === staffMember.id ? styles.editing : ''}`}>
             <div className={styles.staffHeader}>
               <div className={styles.staffInfo}>
                 <div className={styles.staffName}>{staffMember.name}</div>
                 <div className={styles.staffEmail}>{staffMember.email}</div>
-                <div className={styles.staffRole}>{staffMember.role}</div>
+                <div className={styles.staffRole}>{staffMember.role.replace('_', ' ')}</div>
               </div>
               <div className={styles.staffActions}>
                 <button 
                   onClick={() => editStaffMember(staffMember)}
                   className={styles.editBtn}
+                  disabled={editingStaff?.id === staffMember.id}
                 >
-                  Edit
+                  {editingStaff?.id === staffMember.id ? 'Editing...' : 'Edit'}
                 </button>
                 <button 
                   onClick={() => handleDelete(staffMember.id)}
                   className={styles.deleteBtn}
+                  disabled={editingStaff?.id === staffMember.id}
                 >
                   Delete
                 </button>
