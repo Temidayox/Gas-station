@@ -15,8 +15,6 @@ export async function GET(req: NextRequest) {
       name: true,
       email: true,
       phone: true,
-      smokeBalance: true,
-      useSmokeBalance: true,
       cylinders: {
         include: {
           transactions: {
@@ -68,8 +66,8 @@ export async function GET(req: NextRequest) {
       name:  fullUser.name  ?? '',
       email: fullUser.email ?? '',
       phone: fullUser.phone ?? null,
-      smokeBalance: fullUser.smokeBalance ?? 0,
-      useSmokeBalance: fullUser.useSmokeBalance ?? false,
+      smokeBalance: 0, // Default until migration runs
+      useSmokeBalance: false, // Default until migration runs
     },
     cylinders: fullUser.cylinders.map(c => ({
       id:         c.id,
