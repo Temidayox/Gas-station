@@ -81,19 +81,19 @@ export default function ProfilePage() {
     <div className={styles.wrap}>
       <div className={styles.hero}>
         <div className={styles.heroLeft}>
-          <div className={styles.avatar} style={{background: userColor}}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style={{margin: 'auto'}}>
+          <div className={styles.avatar} style={{background: 'white', border: `3px solid ${userColor}`}}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill={userColor} style={{margin: 'auto'}}>
               {/* Gas Cylinder Body */}
-              <rect x="6" y="4" width="12" height="16" rx="2" fill="white"/>
+              <rect x="6" y="4" width="12" height="16" rx="2" fill={userColor}/>
               {/* Cylinder Top Valve */}
-              <rect x="10" y="2" width="4" height="4" rx="1" fill="white"/>
+              <rect x="10" y="2" width="4" height="4" rx="1" fill={userColor}/>
               {/* Cylinder Handle */}
-              <rect x="9" y="0" width="6" height="3" rx="1" fill="white"/>
+              <rect x="9" y="0" width="6" height="3" rx="1" fill={userColor}/>
               {/* Gas Flame Indicator */}
-              <circle cx="12" cy="10" r="2" fill="currentColor" opacity="0.3"/>
+              <circle cx="12" cy="10" r="2" fill="white" opacity="0.3"/>
               {/* Cylinder Lines for Detail */}
-              <line x1="8" y1="8" x2="8" y2="16" stroke="currentColor" strokeWidth="0.5" opacity="0.2"/>
-              <line x1="16" y1="8" x2="16" y2="16" stroke="currentColor" strokeWidth="0.5" opacity="0.2"/>
+              <line x1="8" y1="8" x2="8" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
+              <line x1="16" y1="8" x2="16" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
             </svg>
           </div>
           <div>
