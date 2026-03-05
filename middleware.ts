@@ -22,8 +22,8 @@ export default withAuth(
       }
     }
     
-    // Protect admin routes
-    if (pathname.startsWith('/settings') && !isAdmin) {
+    // Protect admin-only routes
+    if (pathname.startsWith('/admin') && !isAdmin) {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
     
@@ -41,7 +41,6 @@ export const config = {
     '/dashboard/:path*',
     '/pos/:path*', 
     '/profile/:path*',
-    '/settings/:path*',
     '/admin/:path*',
     '/'
   ]
