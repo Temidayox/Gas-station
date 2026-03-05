@@ -207,7 +207,7 @@ export default function ProfilePage() {
           <div className={styles.cardTitle}>Monthly Spend</div>
           <div style={{ padding: "8px 0 4px", height: 160 }}>
             {(() => {
-              const W = 320, H = 100, pad = 24
+              const W = 400, H = 120, pad = 28
               const vals = (monthlySpend ?? []).map((m: any) => m.value)
               const max = Math.max(...vals, 1)
               const pts = vals.map((v: number, i: number) => ({
@@ -350,6 +350,7 @@ export default function ProfilePage() {
     </div>
   )
 }
+
 
 
 
