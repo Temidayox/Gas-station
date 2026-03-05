@@ -34,7 +34,7 @@ async function main() {
     await prisma.cylinder.upsert({ where: { id: cyl.id }, update: {}, create: cyl })
   }
 
-  // Get the first 4 cylinder IDs for transactions
+  // Get first 4 cylinder IDs for transactions
   const firstCylinders = cylinders.slice(0, 4).map(c => c.id)
 
   // Price
@@ -45,7 +45,7 @@ async function main() {
   if ((await prisma.transaction.count()) === 0) {
     const cylIds   = [...firstCylinders, null, null, null]
     const payments = ['CASH','CASH','TRANSFER','POS_TERMINAL']
-    const sizes    = [3,5,10,12.5,25]
+    const sizes    = [3.5,10,12.5,25]
     for (let day = 29; day >= 0; day--) {
       for (let outlet = 1; outlet <= 4; outlet++) {
         const n = 8 + Math.floor(Math.random() * 12)
