@@ -111,7 +111,7 @@ export function Sidebar({ user }: { user: any }) {
         </nav>
 
         <div className={styles.bottom}>
-          <Link href="/profile" className={styles.profileLink}>
+          <Link href="/settings" className={styles.profileLink}>
             <div className={styles.profileIcon}>
               <div className={styles.profileAvatar}>
                 {user?.email?.charAt(0).toUpperCase()}

@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [adminSaving, setAdminSaving] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
 
   useEffect(() => {
     if (session?.user) {
@@ -145,6 +146,25 @@ export default function SettingsPage() {
       alert('❌ Network error during reset')
     } finally {
       setResetting(false)
+    }
+  }
+
+  async function regenerateCylinders() {
+    if (!confirm('⚠️ This will delete all existing cylinders and generate 100 new random codes. This action cannot be undone. Continue?')) return
+    setRegenerating(true)
+    try {
+      const res = await fetch('/api/admin/regenerate-cylinders', { method: 'POST' })
+      if (res.ok) {
+        const data = await res.json()
+        alert(`✅ ${data.message}\n\nSample codes: ${data.sampleCodes.join(', ')}`)
+      } else {
+        const d = await res.json()
+        alert(`❌ Regeneration failed: ${d.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      alert('❌ Network error during cylinder regeneration')
+    } finally {
+      setRegenerating(false)
     }
   }
 
@@ -321,6 +341,40 @@ export default function SettingsPage() {
             >
               Add Admin User
             </button>
+          </div>
+        </div>
+
+        {/* Cylinder Management */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Cylinder Management</h2>
+            <p className={styles.cardDescription}>Regenerate cylinder codes with secure random IDs</p>
+          </div>
+          <div className={styles.cardContent}>
+            <button
+              onClick={regenerateCylinders}
+              disabled={regenerating}
+              className={styles.dangerButton}
+              style={{background: 'var(--g)', marginBottom: 0}}
+            >
+              {regenerating ? (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Regenerating…
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Regenerate Cylinders
+                </>
+              )}
+            </button>
+            
+            <p className={styles.hint} style={{marginTop: 12, color: 'var(--g)', fontSize: '11px'}}>
+              <strong>ℹ️ Cylinder Regeneration:</strong><br/>
+              • Deletes all existing cylinder codes<br/>
+              • Generates 100 new secure random codes<br/>
+              • Fixes cylinder linking network errors<br/>
+              • Cannot be undone - backup data first
+            </p>
           </div>
         </div>
 
