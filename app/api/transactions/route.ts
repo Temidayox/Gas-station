@@ -125,7 +125,8 @@ export async function POST(req: NextRequest) {
   // Update smoke balance atomically in one operation
   // Final balance = currentBalance - smokeUsed + smokeEarned
   if (cylinderOwnerId && (smokeUsed > 0 || nairaCharged > 0)) {
-    const smokeEarned = nairaCharged > 0 ? Math.floor((nairaCharged / 1000) * 20) : 0
+    // No smoke earned if smoke was used in this transaction
+    const smokeEarned = smokeUsed > 0 ? 0 : Math.floor((nairaCharged / 1000) * 20)
 
     // Fetch current balance fresh to avoid stale data
     const freshUser = await prisma.user.findUnique({
