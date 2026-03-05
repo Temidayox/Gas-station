@@ -80,23 +80,25 @@ export async function GET(req: NextRequest) {
       role: user.role
     })
 
+    const debugResult = {
+      databaseConnection: !!dbConnection,
+      totalCylinders: totalCount,
+      sampleCylinders: sampleCylinders,
+      testLinking: {
+        testCode,
+        result: linkResult
+      },
+      userSession: {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Comprehensive cylinder debug completed',
-      debug: {
-        databaseConnection: !!dbConnection,
-        totalCylinders: totalCount,
-        sampleCylinders: sampleCylinders,
-        testLinking: {
-          testCode,
-          result: linkResult
-        },
-        userSession: {
-          id: user.id,
-          email: user.email,
-          role: user.role
-        }
-      }
+      debug: debugResult
     })
     
   } catch (error) {
