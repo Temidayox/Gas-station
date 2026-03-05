@@ -24,6 +24,7 @@
 .saveBtn:hover{background:var(--gm);transform:translateY(-1px);}
 .saveBtn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
 .saveBtnSuccess{background:var(--gl)!important;transform:none!important;}
+.resetBtn:hover{background:#c5221f!important;}
 .stackRow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);font-size:13px;}
 .stackRow:last-child{border:none;}
 .stackDot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}

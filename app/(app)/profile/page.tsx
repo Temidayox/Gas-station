@@ -14,6 +14,21 @@ export default function ProfilePage() {
   const [linkErr, setLinkErr]       = useState('')
   const [linkOk, setLinkOk]         = useState('')
 
+  // Generate random color for user
+  const getUserColor = (email: string) => {
+    const colors = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FE9A0B',
+      '#FFD93D', '#6BCF7F', '#C56CF0', '#FF6B9D', '#4A90E2',
+      '#795548', '#FF9F40', '#A855F7', '#22C55E', '#EF4444'
+    ]
+    let hash = 0
+    for (let i = 0; i < email.length; i++) {
+      hash = email.charCodeAt(i) + ((hash << 5) - hash)
+      hash = hash & hash
+    }
+    return colors[Math.abs(hash) % colors.length]
+  }
+
   const fetchProfile = async () => {
     try {
       const res = await fetch('/api/profile', { cache: 'no-store' })
@@ -60,12 +75,19 @@ export default function ProfilePage() {
   const monthlySpend = data?.monthlySpend ?? []
   const maxMonth = Math.max(...(monthlySpend ?? []).map((m: any) => m.value), 1)
   const initials = (user.name ?? 'U').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+  const userColor = getUserColor(user.email)
 
   return (
     <div className={styles.wrap}>
       <div className={styles.hero}>
         <div className={styles.heroLeft}>
-          <div className={styles.avatar}>{initials}</div>
+          <div className={styles.avatar} style={{background: userColor}}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white" style={{margin: 'auto'}}>
+              <path d="M12 2c0 0-5 4.5-5 9a5 5 0 0010 0c0-1.5-.5-3-1.5-4.5 0 0-1 2-2.5 2C11.5 7 12 2 12 2z"/>
+              <path d="M12 2c0 0-5 4.5-5 9a5 5 0 0010 0c0-1.5-.5-3-1.5-4.5 0 0-1 2-2.5 2C11.5 7 12 2 12 2z" opacity="0.3"/>
+              <path d="M9 11l3 3 6 6M15 11l-3-3-6-6" stroke="white" strokeWidth="2" fill="none"/>
+            </svg>
+          </div>
           <div>
             <h1 className={styles.name}>{user.name}</h1>
             <div className={styles.contact}>

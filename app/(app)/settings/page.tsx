@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const [newAdmin, setNewAdmin] = useState({ email: '', role: 'ADMIN', outletId: null })
   const [showAddForm, setShowAddForm] = useState(false)
   const [adminSaving, setAdminSaving] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
   useEffect(() => {
     fetch('/api/price').then(r => r.json()).then(d => {
@@ -107,6 +108,33 @@ export default function SettingsPage() {
       }
     } catch {
       alert('Network error — try again')
+    }
+  }
+
+  async function resetAllData() {
+    if (!confirm('⚠️ WARNING: This will reset ALL system data except customer information!\n\nThis includes:\n• All transactions\n• All tank refills\n• All cylinder links\n• All outlet data\n• All price history\n\nCustomer accounts and their data will be preserved.\n\nThis action cannot be undone!')) return
+    
+    setResetting(true)
+    try {
+      const res = await fetch('/api/admin/reset-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      
+      if (res.ok) {
+        alert('✅ All system data has been reset successfully!\n\nCustomer data has been preserved.')
+        // Refresh current price
+        fetch('/api/price').then(r => r.json()).then(d => {
+          setCurrent(d.pricePerKg); setPrice(String(d.pricePerKg))
+        })
+      } else {
+        const d = await res.json()
+        alert(`❌ Reset failed: ${d.error || 'Unknown error'}`)
+      }
+    } catch {
+      alert('❌ Network error — please try again')
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -304,6 +332,43 @@ export default function SettingsPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Reset Data */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardIcon} style={{background:'var(--rd)'}}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--rd)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M3 12h18M8 12v4a2 2 0 01-2 2h4a2 2 0 01-2-2v-2M3 18h18"/></svg>
+              </div>
+              <div>
+                <div className={styles.cardTitle}>System Reset</div>
+                <div className={styles.cardSub}>Reset all data except customer information</div>
+              </div>
+            </div>
+            
+            <button
+              className={`${styles.saveBtn} ${styles.resetBtn}`}
+              onClick={resetAllData}
+              disabled={resetting}
+              style={{background: 'var(--rd)', marginBottom: 0}}
+            >
+              {resetting ? (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4v16M12 4v16M20 4v16"/></svg> Resetting…
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M3 12h18M8 12v4a2 2 0 01-2 2h4a2 2 0 01-2-2v-2M3 18h18"/></svg> Reset All Data
+                </>
+              )}
+            </button>
+            
+            <p className={styles.hint} style={{marginTop: 12, color: 'var(--rd)', fontSize: '11px'}}>
+              <strong>⚠️ Critical Action:</strong><br/>
+              • Resets all transactions, refills, and outlet data<br/>
+              • Preserves customer accounts and their information<br/>
+              • Cannot be undone - use with extreme caution
+            </p>
           </div>
         </div>
       </div>

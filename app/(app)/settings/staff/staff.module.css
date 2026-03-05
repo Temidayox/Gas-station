@@ -49,28 +49,31 @@
 @media (max-width: 768px) {
   .wrap {
     padding: 16px !important;
-  }
-  
-  .header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
+    max-width: 100% !important;
   }
   
   .title {
     font-size: 20px !important;
-    text-align: center;
+    text-align: center !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .header {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
   }
   
   .addBtn {
-    padding: 12px 20px !important;
-    font-size: 16px !important;
-    min-height: 48px;
+    width: 100% !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    min-height: 48px !important;
   }
   
   .staffGrid {
     grid-template-columns: 1fr !important;
-    gap: 16px !important;
+    gap: 12px !important;
   }
   
   .staffCard {
@@ -78,88 +81,74 @@
   }
   
   .staffHeader {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-  
-  .staffActions {
-    flex-direction: row;
-    gap: 8px;
-  }
-  
-  .editBtn,
-  .deleteBtn {
-    flex: 1;
-    padding: 10px 12px !important;
-    font-size: 12px !important;
-    min-height: 44px;
-  }
-  
-  .modalContent {
-    margin: 16px !important;
-    padding: 24px !important;
-    max-width: calc(100vw - 32px) !important;
-    max-height: calc(100vh - 32px) !important;
-  }
-  
-  .modalTitle {
-    font-size: 18px !important;
-    margin-bottom: 20px;
-  }
-  
-  .field input,
-  .field select {
-    padding: 14px !important;
-    font-size: 16px !important;
-    min-height: 48px;
-  }
-  
-  .formActions {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .saveBtn,
-  .cancelBtn {
-    padding: 14px 20px !important;
-    font-size: 16px !important;
-    min-height: 48px;
-  }
-}
-
-@media (max-width: 480px) {
-  .wrap {
-    padding: 12px !important;
-  }
-  
-  .title {
-    font-size: 18px !important;
-  }
-  
-  .staffCard {
-    padding: 12px !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+    margin-bottom: 12px !important;
   }
   
   .staffName {
-    font-size: 14px !important;
+    font-size: 16px !important;
   }
   
   .staffEmail {
+    font-size: 13px !important;
+  }
+  
+  .staffActions {
+    flex-direction: row !important;
+    justify-content: flex-end !important;
+    margin-top: 12px !important;
+    gap: 8px !important;
+  }
+  
+  .editBtn, .deleteBtn {
+    padding: 8px 12px !important;
     font-size: 12px !important;
+    min-height: 40px !important;
+    flex: 1 !important;
+    min-width: 80px !important;
   }
   
   .modalContent {
-    margin: 12px !important;
     padding: 20px !important;
+    width: 95% !important;
+    max-width: none !important;
   }
   
   .modalTitle {
-    font-size: 16px !important;
+    font-size: 18px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .field input, .field select {
+    padding: 12px !important;
+    font-size: 14px !important;
+    min-height: 44px !important;
+  }
+  
+  .formActions {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  
+  .saveBtn, .cancelBtn {
+    padding: 14px 20px !important;
+    font-size: 14px !important;
+    min-height: 48px !important;
+  }
+  
+  .outletInfo {
+    margin-top: 12px !important;
+    padding-top: 12px !important;
+  }
+  
+  .staffMeta {
+    font-size: 11px !important;
+    margin-top: 8px !important;
   }
 }
 
-/* Landscape mobile */
 @media (max-width: 768px) and (orientation: landscape) {
   .wrap {
     padding: 12px !important;
