@@ -221,14 +221,14 @@ export default function ProfilePage() {
                 <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 150, overflow: "visible" }} preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#2d7a3a" stopOpacity={0.18}/>
+                      <stop offset="0%" stopColor="#2d7a3a" stopOpacity={0.4}/>
                       <stop offset="100%" stopColor="#2d7a3a" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   {[0.25, 0.5, 0.75, 1].map((t: number) => (
                     <line key={t} x1={pad} x2={W - pad} y1={H - pad - t * (H - pad * 2)} y2={H - pad - t * (H - pad * 2)} stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="2,3"/>
                   ))}
-                  <polygon points={area} fill="url(#lineGrad)"/>
+                  <polygon points={area} fill="url(#lineGrad)" opacity="0.6"/>
                   <polyline points={polyline} fill="none" stroke="#2d7a3a" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
                   {pts.map((p: any, i: number) => (
                     <g key={i}>
@@ -350,6 +350,7 @@ export default function ProfilePage() {
     </div>
   )
 }
+
 
 
 
