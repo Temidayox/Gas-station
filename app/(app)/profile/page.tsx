@@ -82,20 +82,31 @@ export default function ProfilePage() {
     <div className={styles.wrap}>
       <div className={styles.hero}>
         <div className={styles.heroLeft}>
-          <div className={styles.avatar} style={{background: 'white', border: `3px solid ${userColor}`}}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill={userColor} style={{margin: 'auto'}}>
-              {/* Gas Cylinder Body */}
-              <rect x="6" y="4" width="12" height="16" rx="2" fill={userColor}/>
-              {/* Cylinder Top Valve */}
-              <rect x="10" y="2" width="4" height="4" rx="1" fill={userColor}/>
-              {/* Cylinder Handle */}
-              <rect x="9" y="0" width="6" height="3" rx="1" fill={userColor}/>
-              {/* Gas Flame Indicator */}
-              <circle cx="12" cy="10" r="2" fill="white" opacity="0.3"/>
-              {/* Cylinder Lines for Detail */}
-              <line x1="8" y1="8" x2="8" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
-              <line x1="16" y1="8" x2="16" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
-            </svg>
+          <div className={styles.avatarArea}>
+            <div className={styles.avatar} style={{background: 'white', border: `3px solid ${userColor}`}}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill={userColor} style={{margin: 'auto'}}>
+                {/* Gas Cylinder Body */}
+                <rect x="6" y="4" width="12" height="16" rx="2" fill={userColor}/>
+                {/* Cylinder Top Valve */}
+                <rect x="10" y="2" width="4" height="4" rx="1" fill={userColor}/>
+                {/* Cylinder Handle */}
+                <rect x="9" y="0" width="6" height="3" rx="1" fill={userColor}/>
+                {/* Gas Flame Indicator */}
+                <circle cx="12" cy="10" r="2" fill="white" opacity="0.3"/>
+                {/* Cylinder Lines for Detail */}
+                <line x1="8" y1="8" x2="8" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
+                <line x1="16" y1="8" x2="16" y2="16" stroke="white" strokeWidth="0.5" opacity="0.2"/>
+              </svg>
+            </div>
+            <div className={styles.username}>
+              @{user.username || 'user'}
+            </div>
+            <button className={styles.historyIconBtn} onClick={() => setShowHistory(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 4v6h-6M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+              </svg>
+            </button>
           </div>
           <div>
             <h1 className={styles.name}>{user.name}</h1>
@@ -103,25 +114,29 @@ export default function ProfilePage() {
               <span>{user.email}</span>
               {user.phone && <><span className={styles.dot}>·</span><span>{user.phone}</span></>}
             </div>
-            <div className={styles.memberBadge}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-              Verified Customer
-            </div>
           </div>
-        </div>
-        <div className={styles.heroRight}>
-          <button className={styles.historyBtn} onClick={() => setShowHistory(true)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2v6m0 4v6m0-4l-2-2m2 2l2-2M3 12h6m4 0h6m-4 0l2-2m-2 2l-2-2"/>
-              <circle cx="12" cy="12" r="10"/>
-            </svg>
-            History
-          </button>
         </div>
       </div>
 
       {/* Smoke Balance */}
       <div className={styles.smokeBalance}>
+        <div className={styles.campfireBg}>
+          {/* Campfire flames background */}
+          <div className={styles.flames}>
+            <div className={styles.flame}></div>
+            <div className={styles.flame}></div>
+            <div className={styles.flame}></div>
+            <div className={styles.flame}></div>
+            <div className={styles.flame}></div>
+          </div>
+          <div className={styles.smoke}>
+            <div className={styles.smokeParticle}></div>
+            <div className={styles.smokeParticle}></div>
+            <div className={styles.smokeParticle}></div>
+            <div className={styles.smokeParticle}></div>
+            <div className={styles.smokeParticle}></div>
+          </div>
+        </div>
         <div className={styles.smokeIcon}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
             <path d="M7 15c-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V7c0-1.1.9-2 2-2s2 .9 2 2v2.17c1.16.42 2 1.52 2 2.83 0 1.66-1.34 3-3 3zm10 0c-1.66 0-3-1.34-3-3 0-1.31.84-2.41 2-2.83V7c0-1.1.9-2 2-2s2 .9 2 2v2.17c1.16.42 2 1.52 2 2.83 0 1.66-1.34 3-3 3z"/>
