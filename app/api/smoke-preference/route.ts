@@ -7,55 +7,26 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { useSmokeBalance } = await req.json()
+  if (typeof useSmokeBalance !== 'boolean') return NextResponse.json({ error: 'useSmokeBalance must be a boolean' }, { status: 400 })
 
-  if (typeof useSmokeBalance !== 'boolean') {
-    return NextResponse.json({ error: 'useSmokeBalance must be a boolean' }, { status: 400 })
-  }
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: { useSmokeBalance },
+    select: { id: true, name: true, smokeBalance: true, useSmokeBalance: true }
+  })
 
-  try {
-    // Return pending migration response until database is updated
-    return NextResponse.json({
-      success: true,
-      message: 'Smoke preference system pending database migration',
-      user: {
-        id: user.id,
-        name: user.name,
-        smokeBalance: 0, // Default until migration runs
-        useSmokeBalance: false // Default until migration runs
-      }
-    })
-
-  } catch (error: any) {
-    console.error('❌ Failed to update Smoke preference:', error)
-    return NextResponse.json({ 
-      error: 'Failed to update Smoke preference',
-      details: error.message
-    }, { status: 500 })
-  }
+  return NextResponse.json({ success: true, user: updated })
 }
 
 export async function GET(req: NextRequest) {
   const user = await getSessionUser(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  try {
-    // Return pending migration response until database is updated
-    return NextResponse.json({
-      success: true,
-      message: 'Smoke preference system pending database migration',
-      user: {
-        id: user.id,
-        name: user.name,
-        smokeBalance: 0, // Default until migration runs
-        useSmokeBalance: false // Default until migration runs
-      }
-    })
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { id: true, name: true, smokeBalance: true, useSmokeBalance: true }
+  })
+  if (!dbUser) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  } catch (error: any) {
-    console.error('❌ Failed to get Smoke preference:', error)
-    return NextResponse.json({ 
-      error: 'Failed to get Smoke preference',
-      details: error.message
-    }, { status: 500 })
-  }
+  return NextResponse.json({ success: true, user: dbUser })
 }

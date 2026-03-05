@@ -66,8 +66,8 @@ export async function GET(req: NextRequest) {
       name:  fullUser.name  ?? '',
       email: fullUser.email ?? '',
       phone: fullUser.phone ?? null,
-      smokeBalance: 0, // Default until migration runs
-      useSmokeBalance: false, // Default until migration runs
+      smokeBalance: fullUser.smokeBalance,
+      useSmokeBalance: fullUser.useSmokeBalance,
     },
     cylinders: fullUser.cylinders.map(c => ({
       id:         c.id,
@@ -83,3 +83,4 @@ export async function GET(req: NextRequest) {
     monthlySpend,
   })
 }
+

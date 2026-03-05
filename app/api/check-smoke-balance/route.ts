@@ -6,65 +6,33 @@ export async function POST(req: NextRequest) {
   const user = await getSessionUser(req)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { cylinderId, useSmokeBalance } = await req.json()
+  const { cylinderId } = await req.json()
+  if (!cylinderId) return NextResponse.json({ error: 'Cylinder ID required' }, { status: 400 })
 
-  if (!cylinderId) {
-    return NextResponse.json({ error: 'Cylinder ID required' }, { status: 400 })
-  }
+  const cleanCylId = cylinderId.toUpperCase().trim().replace(/-/g, '')
+  const cylinder = await prisma.cylinder.findUnique({ where: { id: cleanCylId } })
+  if (!cylinder) return NextResponse.json({ error: 'Cylinder not found' }, { status: 404 })
+  if (!cylinder.ownerId) return NextResponse.json({ error: 'Cylinder not linked to any user' }, { status: 404 })
 
-  try {
-    // Clean cylinder ID
-    const cleanCylId = cylinderId.toUpperCase().trim().replace(/-/g, '')
+  const owner = await prisma.user.findUnique({
+    where: { id: cylinder.ownerId },
+    select: { id: true, name: true, smokeBalance: true, useSmokeBalance: true }
+  })
+  if (!owner) return NextResponse.json({ error: 'Owner not found' }, { status: 404 })
 
-    // Get cylinder with owner
-    const cylinder = await prisma.cylinder.findUnique({
-      where: { id: cleanCylId }
-    })
-
-    if (!cylinder) {
-      return NextResponse.json({ error: 'Cylinder not found' }, { status: 404 })
-    }
-
-    if (!cylinder.ownerId) {
-      return NextResponse.json({ error: 'Cylinder not linked to any user' }, { status: 404 })
-    }
-
-    // Get owner info (without smoke fields until migration)
-    const owner = await prisma.user.findUnique({
-      where: { id: cylinder.ownerId },
-      select: {
-        id: true,
-        name: true
+  return NextResponse.json({
+    success: true,
+    cylinder: {
+      id: cylinder.id,
+      size: cylinder.size,
+      owner: {
+        id: owner.id,
+        name: owner.name,
+        smokeBalance: owner.smokeBalance,
+        useSmokeBalance: owner.useSmokeBalance
       }
-    })
-
-    if (!owner) {
-      return NextResponse.json({ error: 'Cylinder owner not found' }, { status: 404 })
-    }
-
-    // Return cylinder info with default smoke values until migration
-    return NextResponse.json({
-      success: true,
-      cylinder: {
-        id: cylinder.id,
-        size: cylinder.size,
-        owner: {
-          id: owner.id,
-          name: owner.name,
-          smokeBalance: 0, // Default until migration runs
-          useSmokeBalance: false // Default until migration runs
-        }
-      },
-      canUseSmoke: false, // Disabled until migration runs
-      smokeDiscount: 0,
-      message: 'Smoke balance system pending database migration'
-    })
-
-  } catch (error: any) {
-    console.error('❌ Smoke balance check failed:', error)
-    return NextResponse.json({ 
-      error: 'Failed to check smoke balance',
-      details: error.message
-    }, { status: 500 })
-  }
+    },
+    canUseSmoke: owner.useSmokeBalance && owner.smokeBalance > 0,
+    smokeDiscount: owner.useSmokeBalance ? owner.smokeBalance : 0
+  })
 }
