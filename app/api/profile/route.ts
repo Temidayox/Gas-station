@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
       email: true,
       phone: true,
       smokeBalance: true,
+      useSmokeBalance: true,
       cylinders: {
         include: {
           transactions: {
@@ -68,6 +69,7 @@ export async function GET(req: NextRequest) {
       email: fullUser.email ?? '',
       phone: fullUser.phone ?? null,
       smokeBalance: fullUser.smokeBalance ?? 0,
+      useSmokeBalance: fullUser.useSmokeBalance ?? false,
     },
     cylinders: fullUser.cylinders.map(c => ({
       id:         c.id,

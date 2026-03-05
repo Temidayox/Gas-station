@@ -29,19 +29,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Cylinder not linked to any user' }, { status: 404 })
     }
 
-    // Get owner with smoke balance
+    // Get owner with smoke balance and preference
     const owner = await prisma.user.findUnique({
       where: { id: cylinder.ownerId },
       select: {
         id: true,
         name: true,
-        smokeBalance: true
+        smokeBalance: true,
+        useSmokeBalance: true
       }
     })
 
     if (!owner) {
       return NextResponse.json({ error: 'Cylinder owner not found' }, { status: 404 })
     }
+
+    // Check if user wants to use Smoke balance AND has Smoke available
+    const canUseSmoke = owner.useSmokeBalance && (owner.smokeBalance || 0) > 0
+    const smokeDiscount = canUseSmoke ? Math.min(owner.smokeBalance || 0, 1000) : 0 // Cap at 1000 for safety
 
     // Return cylinder info and user's smoke balance
     return NextResponse.json({
@@ -52,13 +57,17 @@ export async function POST(req: NextRequest) {
         owner: {
           id: owner.id,
           name: owner.name,
-          smokeBalance: owner.smokeBalance || 0
+          smokeBalance: owner.smokeBalance || 0,
+          useSmokeBalance: owner.useSmokeBalance || false
         }
       },
-      canUseSmoke: (owner.smokeBalance || 0) > 0 && useSmokeBalance,
-      message: useSmokeBalance 
-        ? `User has ${owner.smokeBalance || 0} Smoke available for discount (1 Smoke = 1 Naira)`
-        : 'Cylinder found - Smoke balance not requested'
+      canUseSmoke,
+      smokeDiscount,
+      message: owner.useSmokeBalance 
+        ? (owner.smokeBalance || 0) > 0 
+          ? `User has opted to use Smoke balance: ${owner.smokeBalance || 0} Smoke available (up to ${smokeDiscount} Naira discount)`
+          : 'User has opted to use Smoke balance but has no Smoke available'
+        : 'User has NOT opted to use Smoke balance for this purchase'
     })
 
   } catch (error: any) {

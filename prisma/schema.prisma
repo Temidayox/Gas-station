@@ -19,6 +19,7 @@ model User {
   role          String
   outletId      Int?
   smokeBalance  Int           @default(0)
+  useSmokeBalance Boolean      @default(false)
   outlet        Outlet?       @relation(fields: [outletId], references: [id])
   cylinders     Cylinder[]
   tankRefills   TankRefill[]
