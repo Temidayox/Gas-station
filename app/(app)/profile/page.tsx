@@ -226,13 +226,13 @@ export default function ProfilePage() {
                     </linearGradient>
                   </defs>
                   {[0.25, 0.5, 0.75, 1].map((t: number) => (
-                    <line key={t} x1={pad} x2={W - pad} y1={H - pad - t * (H - pad * 2)} y2={H - pad - t * (H - pad * 2)} stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4,4"/>
+                    <line key={t} x1={pad} x2={W - pad} y1={H - pad - t * (H - pad * 2)} y2={H - pad - t * (H - pad * 2)} stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="2,3"/>
                   ))}
                   <polygon points={area} fill="url(#lineGrad)"/>
                   <polyline points={polyline} fill="none" stroke="#2d7a3a" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
                   {pts.map((p: any, i: number) => (
                     <g key={i}>
-                      <circle cx={p.x} cy={p.y} r="4" fill="#2d7a3a" stroke="white" strokeWidth="2"/>
+                      
                       {p.v > 0 && <text x={p.x} y={p.y - 10} textAnchor="middle" fontSize="9" fill="#2d7a3a" fontWeight="700">&#8358;{Math.round(p.v / 1000)}k</text>}
                       <text x={p.x} y={H - 6} textAnchor="middle" fontSize="10" fill="#6b7280">{(monthlySpend ?? [])[i]?.label}</text>
                     </g>
@@ -350,6 +350,7 @@ export default function ProfilePage() {
     </div>
   )
 }
+
 
 
 
