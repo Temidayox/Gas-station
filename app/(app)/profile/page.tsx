@@ -13,7 +13,6 @@ export default function ProfilePage() {
   const [linkLoading, setLinkLoading] = useState(false)
   const [linkErr, setLinkErr]       = useState('')
   const [linkOk, setLinkOk]         = useState('')
-  const [showHistory, setShowHistory] = useState(false)
 
   // Generate random color for user
   const getUserColor = (email: string) => {
@@ -101,12 +100,6 @@ export default function ProfilePage() {
             <div className={styles.username}>
               @{user.username || 'user'}
             </div>
-            <button className={styles.historyIconBtn} onClick={() => setShowHistory(true)}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2v6m0 4v6m0-4l-2-2m2 2l2-2M3 12h6m4 0h6m-4 0l2-2m-2 2l-2-2"/>
-                <circle cx="12" cy="12" r="10"/>
-              </svg>
-            </button>
           </div>
           <div>
             <h1 className={styles.name}>{user.name}</h1>
@@ -250,36 +243,6 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-
-      {/* History Modal */}
-      {showHistory && (
-        <div className={styles.modalOverlay} onClick={() => setShowHistory(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>Purchase History</h2>
-              <button className={styles.modalClose} onClick={() => setShowHistory(false)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 6L6 18M6 6l12 12"/>
-                </svg>
-              </button>
-            </div>
-            
-            <div className={styles.historyStats}>
-              {[
-                { label: 'Total Spent', value: fmt(stats.totalSpend) },
-                { label: 'Gas Purchased', value: `${(stats.totalKg || 0).toFixed(1)} kg` },
-                { label: 'Total Refills', value: stats.refillCount },
-                { label: 'Favourite Outlet', value: stats.favOutlet || '—' },
-              ].map(({ label, value }) => (
-                <div key={label} className={styles.historyStat}>
-                  <div className={styles.historyStatLabel}>{label}</div>
-                  <div className={styles.historyStatValue}>{value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
