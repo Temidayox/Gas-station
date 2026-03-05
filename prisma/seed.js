@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client')
 const bcrypt = require('bcryptjs')
+const { generateSeedCylinders } = require('../lib/cylinderGenerator')
 const prisma = new PrismaClient()
 
 async function main() {
@@ -26,17 +27,10 @@ async function main() {
   const custB = await prisma.user.upsert({ where: { email: 'demo.b@gasstation.ng' }, update: {}, create: { email: 'demo.b@gasstation.ng', name: 'Babatunde Lawal', phone: '08012345002', password: hash('Demo@002'), role: 'CUSTOMER' } })
   const custC = await prisma.user.upsert({ where: { email: 'demo.c@gasstation.ng' }, update: {}, create: { email: 'demo.c@gasstation.ng', name: 'Chioma Eze',      phone: '08012345003', password: hash('Demo@003'), role: 'CUSTOMER' } })
 
-  // Cylinders
-  for (const cyl of [
-    { id: 'GS00001', size: 12.5, ownerId: custA.id, isLinked: true },
-    { id: 'GS00002', size: 5,    ownerId: custB.id, isLinked: true },
-    { id: 'GS00003', size: 12.5, ownerId: custC.id, isLinked: true },
-    { id: 'GS00004', size: 25,   ownerId: custC.id, isLinked: true },
-    // GS00005–GS00020: unlinked stickers available to hand out
-    ...Array.from({ length: 16 }, (_, i) => ({ id: `GS${String(i+5).padStart(5,'0')}`, size: 0, isLinked: false })),
-    // GS00021+: additional stock
-    ...Array.from({ length: 30 }, (_, i) => ({ id: `GS${String(i+21).padStart(5,'0')}`, size: 0, isLinked: false })),
-  ]) {
+  // Cylinders - Using secure random alphanumeric generator
+  const cylinders = generateSeedCylinders(4, 50) // First 4 linked to demo users, total 50 cylinders
+  
+  for (const cyl of cylinders) {
     await prisma.cylinder.upsert({ where: { id: cyl.id }, update: {}, create: cyl })
   }
 
