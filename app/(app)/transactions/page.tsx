@@ -24,7 +24,7 @@ function ReceiptModal({ tx, onClose }: { tx: Tx; onClose: () => void }) {
     >
       <div
         style={{
-          background: 'var(--card)', borderRadius: 16, padding: 28,
+          background: '#ffffff', borderRadius: 16, padding: 28,
           width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         }}
         onClick={e => e.stopPropagation()}
