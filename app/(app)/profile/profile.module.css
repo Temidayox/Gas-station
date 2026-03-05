@@ -67,3 +67,297 @@
 .linkSubmit:disabled{opacity:.5;cursor:not-allowed;}
 .linkCancel{padding:9px 14px;background:var(--wh);color:var(--inks);border:1.5px solid var(--bdr);border-radius:var(--r-sm);font-family:var(--fb),sans-serif;font-size:13px;cursor:pointer;transition:all .15s;}
 .linkCancel:hover{border-color:var(--rd);color:var(--rd);}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .wrap {
+    padding: 16px !important;
+  }
+  
+  .hero {
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 20px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .heroLeft {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 12px !important;
+  }
+  
+  .avatar {
+    width: 80px !important;
+    height: 80px !important;
+    font-size: 28px !important;
+  }
+  
+  .name {
+    font-size: 20px !important;
+    text-align: center !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .contact {
+    flex-direction: column !important;
+    gap: 4px !important;
+    text-align: center !important;
+    font-size: 12px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .dot {
+    display: none !important;
+  }
+  
+  .memberBadge {
+    justify-content: center !important;
+    margin: 0 auto !important;
+    font-size: 10px !important;
+    padding: 4px 12px !important;
+  }
+  
+  .kpiRow {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .kpi {
+    padding: 14px 16px !important;
+  }
+  
+  .kpiLabel {
+    font-size: 10px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .kpiVal {
+    font-size: 18px !important;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .card {
+    padding: 18px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .cardTitle {
+    font-size: 15px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .cardCount {
+    font-size: 11px !important;
+    padding: 2px 8px !important;
+  }
+  
+  .chart {
+    height: 100px !important;
+    padding-top: 16px !important;
+  }
+  
+  .chartCol {
+    gap: 3px !important;
+  }
+  
+  .barLabel {
+    font-size: 8px !important;
+  }
+  
+  .barLbl {
+    font-size: 9px !important;
+  }
+  
+  .cylCard {
+    padding: 12px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .cylCardTop {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+  }
+  
+  .cylIdBig {
+    font-size: 14px !important;
+  }
+  
+  .cylLastFill {
+    font-size: 10px !important;
+    margin-top: 2px !important;
+  }
+  
+  .cylSizeBadge {
+    font-size: 12px !important;
+    padding: 3px 10px !important;
+  }
+  
+  .linkBtn {
+    padding: 12px !important;
+    font-size: 12px !important;
+    margin-top: 6px !important;
+  }
+  
+  .linkBox {
+    padding: 12px !important;
+    margin-top: 6px !important;
+  }
+  
+  .linkBoxTitle {
+    font-size: 11px !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .linkInp {
+    padding: 12px !important;
+    font-size: 16px !important;
+  }
+  
+  .linkBtns {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-top: 8px !important;
+  }
+  
+  .linkSubmit, .linkCancel {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    min-height: 44px !important;
+  }
+  
+  .tableWrap {
+    margin-top: 16px !important;
+  }
+  
+  .tbl {
+    font-size: 11px !important;
+  }
+  
+  .tbl th {
+    padding: 6px 8px !important;
+    font-size: 9px !important;
+  }
+  
+  .tbl td {
+    padding: 8px 6px !important;
+    font-size: 11px !important;
+  }
+  
+  .txDate {
+    font-size: 11px !important;
+  }
+  
+  .txTime {
+    font-size: 10px !important;
+  }
+  
+  .money {
+    font-size: 12px !important;
+  }
+  
+  .mono {
+    font-size: 11px !important;
+  }
+  
+  .cylId {
+    font-size: 11px !important;
+  }
+  
+  .payBadge {
+    font-size: 10px !important;
+    padding: 1px 6px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrap {
+    padding: 12px !important;
+  }
+  
+  .hero {
+    padding: 16px !important;
+  }
+  
+  .avatar {
+    width: 70px !important;
+    height: 70px !important;
+    font-size: 24px !important;
+  }
+  
+  .name {
+    font-size: 18px !important;
+  }
+  
+  .kpiRow {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  
+  .kpi {
+    padding: 12px !important;
+  }
+  
+  .kpiVal {
+    font-size: 16px !important;
+  }
+  
+  .card {
+    padding: 16px !important;
+  }
+  
+  .chart {
+    height: 80px !important;
+  }
+  
+  .tbl th, .tbl td {
+    padding: 4px 6px !important;
+  }
+  
+  .tbl th {
+    font-size: 8px !important;
+  }
+  
+  .tbl td {
+    font-size: 10px !important;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .hero {
+    flex-direction: row !important;
+    padding: 16px !important;
+  }
+  
+  .heroLeft {
+    flex-direction: row !important;
+    text-align: left !important;
+  }
+  
+  .avatar {
+    width: 60px !important;
+    height: 60px !important;
+    font-size: 22px !important;
+  }
+  
+  .name {
+    text-align: left !important;
+  }
+  
+  .contact {
+    flex-direction: row !important;
+    text-align: left !important;
+  }
+  
+  .dot {
+    display: inline !important;
+  }
+}
