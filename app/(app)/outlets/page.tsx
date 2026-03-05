@@ -7,6 +7,7 @@ import styles from './outlets.module.css'
 export default function OutletsPage() {
   const [outlets, setOutlets]     = useState<any[]>([])
   const [loading, setLoading]     = useState(true)
+  const [sessionLoading, setSessionLoading] = useState(true)
   const [selected, setSelected]   = useState<any>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [session, setSession]     = useState<any>(null)
@@ -38,8 +39,15 @@ export default function OutletsPage() {
 
   useEffect(() => { 
     const loadSession = async () => {
-      const sessionData = await getSession()
-      setSession(sessionData)
+      try {
+        const sessionData = await getSession()
+        setSession(sessionData)
+      } catch (error) {
+        console.error('Error loading session:', error)
+        setSession(null)
+      } finally {
+        setSessionLoading(false)
+      }
     }
     loadSession()
     fetchOutlets() 
@@ -68,19 +76,23 @@ export default function OutletsPage() {
     e.preventDefault()
     
     try {
-      const res = await fetch('/api/admin/staff', {
-        method: 'PUT',
+      const url = editingStaff ? '/api/admin/staff' : '/api/admin/staff'
+      const method = editingStaff ? 'PUT' : 'POST'
+      
+      const payload = editingStaff 
+        ? { ...staffForm, id: editingStaff.id }
+        : staffForm
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...staffForm,
-          id: editingStaff.id
-        })
+        body: JSON.stringify(payload)
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to update staff member')
+        throw new Error(data.error || 'Failed to save staff member')
       }
 
       // Refresh outlets data to get updated staff
@@ -96,11 +108,11 @@ export default function OutletsPage() {
         outletId: ''
       })
 
-      // Show appropriate message based on whether email was changed
-      alert(data.message || 'Staff member updated successfully!')
+      // Show appropriate message based on response
+      alert(data.message || (editingStaff ? 'Staff member updated successfully!' : 'Staff member added successfully!'))
     } catch (error) {
-      console.error('Error updating staff member:', error)
-      alert(error instanceof Error ? error.message : 'Failed to update staff member')
+      console.error('Error saving staff member:', error)
+      alert(error instanceof Error ? error.message : 'Failed to save staff member')
     }
   }
 
@@ -115,7 +127,7 @@ export default function OutletsPage() {
     setShowStaffEdit(true)
   }
 
-  if (loading) return <div className={styles.loading}><div className="spinner" /></div>
+  if (loading || sessionLoading) return <div className={styles.loading}><div className="spinner" /></div>
 
   if (selected) {
     const o = selected
@@ -203,31 +215,62 @@ export default function OutletsPage() {
         </div>
         <div className={styles.card}>
           <div className={styles.cardTitle}>Staff ({(o.staff??[]).length})</div>
-          {(o.staff??[]).length === 0
-            ? <div className={styles.empty}>No staff assigned yet.</div>
-            : <table className={styles.tbl}>
-                <thead><tr><th>Name</th><th>Email</th><th>Role</th>{session?.user?.role === 'ADMIN' && <th>Actions</th>}</tr></thead>
-                <tbody>
-                  {(o.staff??[]).map((s: any, i: number) => (
-                    <tr key={s.id} className={i%2?styles.alt:''}>
-                      <td className={styles.bold}>{s.name}</td>
-                      <td className={styles.muted}>{s.email}</td>
-                      <td><span className={styles.roleBadge}>{s.role.replace('_',' ')}</span></td>
-                      {session?.user?.role === 'ADMIN' && (
-                        <td>
-                          <button 
-                            className={styles.editBtn}
-                            onClick={() => editStaffMember(s)}
-                          >
-                            Edit
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-          }
+          {(o.staff??[]).length === 0 ? (
+            <div>
+              <div className={styles.empty}>No staff assigned yet.</div>
+              {!sessionLoading && session?.user?.role === 'ADMIN' && (
+                <div style={{marginTop: '16px', textAlign: 'center'}}>
+                  <button 
+                    className={styles.editBtn}
+                    onClick={() => {
+                      // Create a new staff member for this outlet
+                      setStaffForm({
+                        email: '',
+                        name: '',
+                        role: 'OUTLET_STAFF',
+                        outletId: o.id.toString()
+                      })
+                      setEditingStaff(null)
+                      setShowStaffEdit(true)
+                    }}
+                    style={{padding: '8px 16px', fontSize: '12px'}}
+                  >
+                    + Add Staff Member
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <table className={styles.tbl}>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  {!sessionLoading && session?.user?.role === 'ADMIN' && <th>Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {(o.staff??[]).map((s: any, i: number) => (
+                  <tr key={s.id} className={i%2?styles.alt:''}>
+                    <td className={styles.bold}>{s.name}</td>
+                    <td className={styles.muted}>{s.email}</td>
+                    <td><span className={styles.roleBadge}>{s.role.replace('_',' ')}</span></td>
+                    {!sessionLoading && session?.user?.role === 'ADMIN' && (
+                      <td>
+                        <button 
+                          className={styles.editBtn}
+                          onClick={() => editStaffMember(s)}
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
         <div className={styles.card}>
           <div className={styles.cardTitle}>Recent Tank Refills</div>
@@ -300,7 +343,7 @@ export default function OutletsPage() {
       {showStaffEdit && (
         <div className={styles.createCard}>
           <div className={styles.createHead}>
-            <span>Edit Staff Member</span>
+            <span>{editingStaff ? 'Edit Staff Member' : 'Add Staff Member'}</span>
             <button className={styles.closeBtn} onClick={() => { 
               setShowStaffEdit(false)
               setEditingStaff(null)
@@ -365,8 +408,10 @@ export default function OutletsPage() {
             )}
           </form>
           <div className={styles.createBtns}>
-            <button className={styles.createSubmit} onClick={handleStaffEdit}>Update Staff Member</button>
-            <button className={styles.createCancel} onClick={() => { 
+            <button type="button" className={styles.createSubmit} onClick={handleStaffEdit}>
+              {editingStaff ? 'Update Staff Member' : 'Add Staff Member'}
+            </button>
+            <button type="button" className={styles.createCancel} onClick={() => { 
               setShowStaffEdit(false)
               setEditingStaff(null)
               setStaffForm({
