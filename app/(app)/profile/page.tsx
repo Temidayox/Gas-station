@@ -156,7 +156,7 @@ export default function ProfilePage() {
     <div className={styles.wrap}>
       {selected && <ReceiptModal tx={selected} onClose={() => setSelected(null)} />}
 
-      <div className={styles.hero} style={{background:`linear-gradient(135deg, ${userColor}15 0%, ${userColor}05 100%)`, border:`1px solid ${userColor}25`, borderRadius:16, animation:"heroIn 0.6s ease forwards"}} style={{animation:"slideUp 0.5s ease forwards"}} >
+      <div className={styles.hero} style={{background:`linear-gradient(135deg, ${userColor}15 0%, ${userColor}05 100%)`, border:`1px solid ${userColor}25`, borderRadius:16, animation:"heroIn 0.6s ease forwards"}} >
         <div className={styles.heroLeft}>
           <div className={styles.avatarArea}>
             <div className={styles.avatar} style={{background: 'white', border: `3px solid ${userColor}`}}>
@@ -350,6 +350,7 @@ export default function ProfilePage() {
     </div>
   )
 }
+
 
 
 
